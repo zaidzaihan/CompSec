@@ -4,10 +4,10 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
-app.get((req, res)=>{
+app.get('/',(req, res)=>{
     res.send('Testing deployment');
 });
 
 app.listen(port, ()=>{
-    console.log(`App listening on port${port}`);
+    console.log(`App listening on port ${port}`);
 });
