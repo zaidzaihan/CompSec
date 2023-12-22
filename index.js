@@ -10,8 +10,22 @@ const express = require('express');
 const app = express();
 const port = process.env.PORT || 3000; 
 
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
+const options = {
+    definition: {
+        openapi: '3.0.0',
+        info: {
+            title: 'VMS API',
+            version: '1.0.0'
+        },
+    },
+    apis: ['./main.js'],
+};
+const swaggerSpec = swaggerJsdoc(options);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 const bcrypt = require('bcrypt');
-const saltround = 10;
 var hashed;
 
 app.use(express.json())
@@ -188,6 +202,32 @@ async function logs(identification_No, name, role){
 }
     
 //login for staff
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     summary: Authenticate user
+ *     description: Login with identification and password
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               identification: 
+ *                 type: string
+ *               hashedPassword: 
+ *                 type: string
+ *     responses:
+ *       '200':
+ *         description: Login successful
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ */
+
 async function login(res, identification, hashedPassword) {
     await client.connect();
     const exist = await client.db("VMS").collection("UserInfo").findOne({ identification_No: identification });
