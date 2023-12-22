@@ -253,6 +253,115 @@ async function viewVisitors(identification_No, role){
 
 
 //post method to register visitor
+/**
+ * @swagger
+ * /user/registerVisitor:
+ *   post:
+ *     summary: Register a visitor
+ *     description: Register a visitor with required details
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               identification_No:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               gender:
+ *                 type: string
+ *               ethnicity:
+ *                 type: string
+ *               temperature:
+ *                 type: string
+ *               dateofbirth:
+ *                 type: string
+ *               citizenship:
+ *                 type: string
+ *               document_type:
+ *                 type: string
+ *               expiryDate:
+ *                 type: string
+ *                 format: date
+ *               address:
+ *                 type: string
+ *               town:
+ *                 type: string
+ *               postcode:
+ *                 type: string
+ *               state:
+ *                 type: string
+ *               country:
+ *                 type: string
+ *               phone_number:
+ *                 type: string
+ *               vehicle_number:
+ *                 type: string
+ *               vehicle_type:
+ *                 type: string
+ *               visitor_category:
+ *                 type: string
+ *               preregistered_pass:
+ *                 type: string
+ *               no_of_visitors:
+ *                 type: string
+ *               purpose_of_visit:
+ *                 type: string
+ *               visit_limit_hrs:
+ *                 type: string
+ *               visit_limit_min:
+ *                 type: string
+ *               To_meet:
+ *                 type: string
+ *               Host_Information:
+ *                 type: string
+ *               Location_or_department:
+ *                 type: string
+ *               Unit_no:
+ *                 type: string
+ *               Location_Information:
+ *                 type: string
+ *               Permit_number:
+ *                 type: string
+ *               Delivery_Order:
+ *                 type: string
+ *               Remarks:
+ *                 type: string
+ *               fever:
+ *                 type: string
+ *               sore_throat:
+ *                 type: string
+ *               dry_cough:
+ *                 type: string
+ *               runny_nose:
+ *                 type: string
+ *               shortness_of_breath:
+ *                 type: string
+ *               body_ache:
+ *                 type: string
+ *               travelled_oversea_last_14_days:
+ *                 type: string
+ *               contact_with_person_with_Covid_19:
+ *                 type: string
+ *               recovered_from_covid_19:
+ *                 type: string
+ *               covid_19_test:
+ *                 type: string
+ *               date:
+ *                 type: string
+ *                 format: date
+ *     responses:
+ *       '200':
+ *         description: Visitor registration successful
+ *       '400':
+ *         description: Invalid request body or insufficient permissions
+ *       '401':
+ *         description: Unauthorized - Invalid token or insufficient permissions
+ */
 app.post('/user/registerVisitor', async function(req, res){
     var token = req.header('Authorization').split(" ")[1];
     try {
@@ -269,7 +378,6 @@ app.post('/user/registerVisitor', async function(req, res){
         console.log("You have no access!");
     }
 });
-
 
 //login post for staff
 /**
@@ -307,6 +415,31 @@ app.post('/user/login', async function(req, res){
     await login(res, identification_No, hashedPassword);
 });
 
+
+//user logout
+/**
+ * @swagger
+ * /user/logout:
+ *   post:
+ *     summary: User logout
+ *     description: Logout user by updating exit time in logs
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               identification_No:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       '200':
+ *         description: User successfully logged out
+ *       '400':
+ *         description: Invalid request body or user not logged in before
+ */
 app.post('/user/logout', async function(req, res){
     const {identification_No, password} = req.body;
     const currentDate = new Date();
@@ -324,6 +457,31 @@ app.post('/user/logout', async function(req, res){
     }
 });
 
+
+//delete visitors
+/**
+ * @swagger
+ * /deleteVisitors/{id}:
+ *   delete:
+ *     summary: Delete visitor by ID
+ *     description: Delete a visitor and their health status by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the visitor to be deleted
+ *     requestBody:
+ *       required: false
+ *     responses:
+ *       '200':
+ *         description: Visitor deleted successfully
+ *       '400':
+ *         description: Visitor not found or insufficient permissions
+ *       '401':
+ *         description: Unauthorized - Invalid token or insufficient permissions
+ */
 app.delete('/deleteVisitors/:id',async function(req, res) {
     const documentId = req.params.id;
     var token = req.header('Authorization').split(" ")[1];
@@ -344,12 +502,54 @@ if(decoded.role == "Admin"|| decoded.role == "Staff"){
     }
 });
 
+
+
 //login post for visitor
+/**
+ * @swagger
+ * /visitor/login:
+ *   post:
+ *     summary: Visitor login
+ *     description: Login for visitor authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               identification_No:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       '200':
+ *         description: Visitor login successful
+ *       '401':
+ *         description: Invalid credentials or visitor not found
+ */
 app.post('/visitor/login', async function(req, res){
     const {identification_No, password} = req.body;
     visitorLogin(res, identification_No, password);
 });
 
+//View Visitor
+/**
+ * @swagger
+ * /user/view/visitor:
+ *   post:
+ *     summary: View visitors
+ *     description: Retrieve visitors based on user role
+ *     requestBody:
+ *       required: false
+ *     responses:
+ *       '200':
+ *         description: Visitors retrieved successfully
+ *       '400':
+ *         description: Invalid token or error in retrieving visitors
+ *       '401':
+ *         description: Unauthorized - Invalid token or insufficient permissions
+ */
 app.post('/user/view/visitor', async function(req, res){
     var token = req.header('Authorization').split(" ")[1];
     try {
@@ -361,7 +561,115 @@ app.post('/user/view/visitor', async function(req, res){
       }
 });
 
-
+//update visitor
+/**
+ * @swagger
+ * /user/updateVisitor:
+ *   post:
+ *     summary: Update visitor information
+ *     description: Update visitor details based on user role
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               identification_No:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               gender:
+ *                 type: string
+ *               ethnicity:
+ *                 type: string
+ *               temperature:
+ *                 type: string
+ *               dateofbirth:
+ *                 type: string
+ *                 format: date
+ *               citizenship:
+ *                 type: string
+ *               document_type:
+ *                 type: string
+ *               expiryDate:
+ *                 type: string
+ *                 format: date
+ *               address:
+ *                 type: string
+ *               town:
+ *                 type: string
+ *               postcode:
+ *                 type: string
+ *               state:
+ *                 type: string
+ *               country:
+ *                 type: string
+ *               phone_number:
+ *                 type: string
+ *               vehicle_number:
+ *                 type: string
+ *               vehicle_type:
+ *                 type: string
+ *               visitor_category:
+ *                 type: string
+ *               preregistered_pass:
+ *                 type: string
+ *               no_of_visitors:
+ *                 type: string
+ *               purpose_of_visit:
+ *                 type: string
+ *               visit_limit_hrs:
+ *                 type: string
+ *               visit_limit_min:
+ *                 type: string
+ *               To_meet:
+ *                 type: string
+ *               Host_Information:
+ *                 type: string
+ *               Location_or_department:
+ *                 type: string
+ *               Unit_no:
+ *                 type: string
+ *               Location_Information:
+ *                 type: string
+ *               Permit_number:
+ *                 type: string
+ *               Delivery_Order:
+ *                 type: string
+ *               Remarks:
+ *                 type: string
+ *               fever:
+ *                 type: string
+ *               sore_throat:
+ *                 type: string
+ *               dry_cough:
+ *                 type: string
+ *               runny_nose:
+ *                 type: string
+ *               shortness_of_breath:
+ *                 type: string
+ *               body_ache:
+ *                 type: string
+ *               travelled_oversea_last_14_days:
+ *                 type: string
+ *               contact_with_person_with_Covid_19:
+ *                 type: string
+ *               recovered_from_covid_19:
+ *                 type: string
+ *               covid_19_test:
+ *                 type: string
+ *               date:
+ *                 type: string
+ *                 format: date
+ *     responses:
+ *       '200':
+ *         description: Visitor information updated successfully
+ *       '400':
+ *         description: Invalid request body or insufficient permissions
+ *       '401':
+ *         description: Unauthorized - Invalid token or insufficient permissions
+ */
 app.post('/user/updateVisitor', async function(req, res){
     var token = req.header('Authorization').split(" ")[1];
     const {identification_No, name, gender, ethnicity, temperature, dateofbirth, citizenship, document_type, expiryDate, address, town, postcode, state, country, phone_number, vehicle_number, vehicle_type, visitor_category, preregistered_pass, no_of_visitors, purpose_of_visit, visit_limit_hrs, visit_limit_min, To_meet, Host_Information, Location_or_department, Unit_no, Location_Information, Permit_number, Delivery_Order, Remarks, fever, sore_throat, dry_cough, runny_nose, shortness_of_breath, body_ache, travelled_oversea_last_14_days, contact_with_person_with_Covid_19, recovered_from_covid_19, covid_19_test, date} = req.body;
@@ -374,6 +682,7 @@ app.post('/user/updateVisitor', async function(req, res){
     }
 });
 
+//To view logs for authorized user
 app.post('/user/viewLogs', async function(req, res){
     var token = req.header('Authorization').split(" ")[1];
     await client.connect()
@@ -387,7 +696,28 @@ app.post('/user/viewLogs', async function(req, res){
     }
 })
 
-
+//Visitor logout
+/**
+ * @swagger
+ * /visitor/logout:
+ *   post:
+ *     summary: Visitor logout
+ *     description: Logout for visitors
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               identification_No:
+ *                 type: string
+ *     responses:
+ *       '200':
+ *         description: Visitor logged out successfully
+ *       '400':
+ *         description: Invalid request body or user not logged in
+ */
 app.post('/visitor/logout', async function(req, res){
     const {identification_No} = req.body;
     const currentDate = new Date();
