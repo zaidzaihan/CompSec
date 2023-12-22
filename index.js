@@ -202,32 +202,6 @@ async function logs(identification_No, name, role){
 }
     
 //login for staff
-/**
- * @swagger
- * /login:
- *   post:
- *     summary: Authenticate user
- *     description: Login with identification and password
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               identification: 
- *                 type: string
- *               hashedPassword: 
- *                 type: string
- *     responses:
- *       '200':
- *         description: Login successful
- *         content:
- *           text/plain:
- *             schema:
- *               type: string
- */
-
 async function login(res, identification, hashedPassword) {
     await client.connect();
     const exist = await client.db("VMS").collection("UserInfo").findOne({ identification_No: identification });
@@ -298,6 +272,35 @@ app.post('/user/registerVisitor', async function(req, res){
 
 
 //login post for staff
+/**
+ * @swagger
+ * /user/login:
+ *   post:
+ *     summary: Authenticate user
+ *     description: Login with identification number and password
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               identification_No:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       '200':
+ *         description: Login successful
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *       '400':
+ *         description: Invalid request body
+ *       '401':
+ *         description: Unauthorized - Invalid credentials
+ */
 app.post('/user/login', async function(req, res){
     const { identification_No, password } = req.body;
     const hashedPassword = await generateHash(password);
