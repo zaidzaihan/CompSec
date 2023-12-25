@@ -536,20 +536,30 @@ app.post('/visitor/login', async function(req, res){
 //View Visitor
 /**
  * @swagger
- * /user/view/visitor:
- *   post:
- *     summary: View visitors
- *     description: Retrieve visitors based on user role
- *     requestBody:
- *       required: false
- *     responses:
- *       '200':
- *         description: Visitors retrieved successfully
- *       '400':
- *         description: Invalid token or error in retrieving visitors
- *       '401':
- *         description: Unauthorized - Invalid token or insufficient permissions
+ *   /user/view/visitor:
+ *     post:
+ *       summary: "View visitors"
+ *       description: "Retrieve visitors based on user role"
+ *       security:
+ *         - JWT: []
+ *       responses:
+ *         '200':
+ *           description: "Visitors retrieved successfully"
+ *         '400':
+ *           description: "Invalid token or error in retrieving visitors"
+ *         '401':
+ *           description: "Unauthorized - Invalid token or insufficient permissions"
+ *       consumes:
+ *         - "application/json"
+ *       produces:
+ *         - "application/json"
+ * securityDefinitions:
+ *   JWT:
+ *     type: "apiKey"
+ *     name: "Authorization"
+ *     in: "header"
  */
+
 app.post('/user/view/visitor', async function(req, res){
     var token = req.header('Authorization').split(" ")[1];
     try {
