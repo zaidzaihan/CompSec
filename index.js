@@ -12,6 +12,7 @@ const port = process.env.PORT || 3000;
 
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
+
 const options = {
     definition: {
         openapi: '3.0.0',
@@ -19,9 +20,19 @@ const options = {
             title: 'VMS API',
             version: '1.0.0'
         },
+        components: {  // Add 'components' section
+            securitySchemes: {  // Define 'securitySchemes'
+                bearerAuth: {  // Define 'bearerAuth'
+                    type: 'http',
+                    scheme: 'bearer',
+                    bearerFormat: 'JWT'
+                }
+            }
+        }
     },
     apis: ['./index.js'],
 };
+
 const swaggerSpec = swaggerJsdoc(options);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
@@ -541,7 +552,7 @@ app.post('/visitor/login', async function(req, res){
  *       summary: "View visitors"
  *       description: "Retrieve visitors based on user role"
  *       security:
- *         - JWT: []
+ *         - bearerAuth: []
  *       responses:
  *         '200':
  *           description: "Visitors retrieved successfully"
