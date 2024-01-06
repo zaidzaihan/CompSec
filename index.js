@@ -206,7 +206,7 @@ async function updateVisitor(host, identification_No, name, gender, ethnicity, t
     }
   }
 
-  async function createSecurityPersonnel(res, identification_No, name, password, role) {
+  async function createSecurityPersonnel(res, identification_No, name, password) {
     try {
         await client.connect();
         const exist = await client.db("VMS").collection("UserInfo").findOne({ identification_No });
@@ -220,7 +220,7 @@ async function updateVisitor(host, identification_No, name, gender, ethnicity, t
                 identification_No,
                 name,
                 password,
-                role
+                role: "Security"
             };
 
             // Add logic to insert new security personnel to the database
@@ -498,8 +498,6 @@ app.post('/user/registerVisitor', async function(req, res){
  *                 type: string
  *               password:
  *                 type: string
- *               role:
- *                 type: string
  *     responses:
  *       '200':
  *         description: Security personnel registered successfully
@@ -533,10 +531,10 @@ app.post('/user/registerVisitor', async function(req, res){
  *                   description: Error message for registration failure
  */
 app.post('/security/register', async function(req, res){
-    const { identification_No, name, password, role } = req.body;
+    const { identification_No, name, password } = req.body;
     const hashedPassword = await generateHash(password);
 
-    await createSecurityPersonnel(res,identification_No, name, password, role);
+    await createSecurityPersonnel(res,identification_No, name, hashedPassword);
 });
 
 /**
