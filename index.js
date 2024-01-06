@@ -626,7 +626,7 @@ app.post('/user/register', async function(req, res) {
         }
         
         // Logic to register the new staff
-        const result = await registerStaff(identification_No, name, hashedPassword, phone_number);
+        await registerStaff(identification_No, name, hashedPassword, phone_number);
         // Send success response upon successful registration
         res.status(200).json({ message: 'Staff registered successfully' });
     } catch (error) {
