@@ -48,7 +48,7 @@ async function generateHash(password) {
     return hashedPassword;
 }
 
-async function registerStaff(identification_No, name, hashedPassword,phone_number, role) {
+async function registerStaff(identification_No, name, hashedPassword,phone_number) {
     // Perform operations to register a new staff in the database
     // Example: Inserting the staff data into the database
     const insertedStaff = await client.db("VMS").collection("UserInfo").insertOne({
@@ -56,7 +56,7 @@ async function registerStaff(identification_No, name, hashedPassword,phone_numbe
         name,
         password: hashedPassword,
         phone_number,
-        role
+        role: "Staff"
     });
     return insertedStaff;
 }
@@ -539,7 +539,7 @@ app.post('/security/register', async function(req, res){
 
 /**
  * @swagger
- * /api/user/register:
+ * /user/register:
  *   post:
  *     summary: Register a new staff member
  *     consumes:
@@ -566,9 +566,6 @@ app.post('/security/register', async function(req, res){
  *             phone_number:
  *               type: string
  *               description: Staff phone number
- *             role:
- *               type: string
- *               description: Role of the staff
  *     responses:
  *       '200':
  *         description: Staff registered successfully
@@ -607,7 +604,7 @@ app.post('/security/register', async function(req, res){
  */
 //user to register
 app.post('/user/register', async function(req, res) {
-    const { identification_No, name, password, phone_number, role } = req.body;
+    const { identification_No, name, password, phone_number } = req.body;
     const hashedPassword = await generateHash(password);
     const token = req.headers.authorization.split(' ')[1];
     
@@ -629,7 +626,7 @@ app.post('/user/register', async function(req, res) {
         }
         
         // Logic to register the new staff
-        const result = await registerStaff(identification_No, name, hashedPassword, phone_number, role);
+        const result = await registerStaff(identification_No, name, hashedPassword, phone_number);
         // Send success response upon successful registration
         res.status(200).json({ message: 'Staff registered successfully' });
     } catch (error) {
