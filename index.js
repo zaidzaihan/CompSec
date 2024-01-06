@@ -264,6 +264,7 @@ async function viewVisitors(identification_No, role) {
 }
 
 
+
 //post method to register visitor
 /**
  * @swagger
@@ -481,15 +482,16 @@ app.post('/user/login', async function(req, res){
  */
 app.post('/user/logout', async function(req, res){
     try {
-        const token = req.headers.authorization.split(' ')[1];
+        const token = req.header('Authorization').split(' ')[1];
         const decodedToken = jwt.verify(token, privatekey);
 
-        const exitTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Kuala_Lumpur" }); // Set exit time in Malaysia time zone
+        const currentDate = new Date();
+        const exitTime = currentDate.toLocaleTimeString("en-US", { timeZone: "Asia/Kuala_Lumpur" }); // Get the time only
 
         await client.connect();
         const exist = await client.db("VMS").collection("UserInfo").findOne({ identification_No: decodedToken.identification_No });
         if(exist){
-            await client.db("VMS").collection("Logs").updateOne({ identification_No: decodedToken.identification_No }, { $set: { exit_time: exitTime } });
+            await client.db("VMS").collection("Logs").updateOne({ identification_No: decodedToken.identification_No }, { $set: { exit_time: exitTime, date: currentDate.toLocaleDateString() } });
             res.send(`Successfully logged out!\nCheck out time: ${exitTime}`);
             console.log(exist.exit_time);
         } else {
