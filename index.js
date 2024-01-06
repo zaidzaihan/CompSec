@@ -50,17 +50,16 @@ async function generateHash(password) {
 
 
 // register a visitor 
-async function register(identification_No, name, password, gender, ethnicity, temperature, dateofbirth, citizenship, document_type, expiryDate, address, town, postcode, state, country, phone_number, vehicle_number, vehicle_type, visitor_category, preregistered_pass, no_of_visitors, purpose_of_visit, visit_limit_hrs, visit_limit_min, To_meet, Host_Information, Location_or_department, Unit_no, Location_Information, Permit_number, Delivery_Order, Remarks, fever, sore_throat, dry_cough, runny_nose, shortness_of_breath, body_ache, travelled_oversea_last_14_days, contact_with_person_with_Covid_19, recovered_from_covid_19, covid_19_test, date){
+async function register(identification_No, name, gender, ethnicity, temperature, dateofbirth, citizenship, document_type, expiryDate, address, town, postcode, state, country, phone_number, vehicle_number, vehicle_type, visitor_category, preregistered_pass, no_of_visitors, purpose_of_visit, visit_limit_hrs, visit_limit_min, To_meet, Host_Information, Location_or_department, Unit_no, Location_Information, Permit_number, Delivery_Order, Remarks, fever, sore_throat, dry_cough, runny_nose, shortness_of_breath, body_ache, travelled_oversea_last_14_days, contact_with_person_with_Covid_19, recovered_from_covid_19, covid_19_test, date){
     await client.connect();
     const exist = await client.db("VMS").collection("Visitors").findOne({identification_No: identification_No});
-    hashed = await bcrypt.hash(password,10);
+    //hashed = await bcrypt.hash(password,10);
     if(exist){
         console.log("User is already registered!");
     }else{
         await client.db("VMS").collection("Visitors").insertOne({
             identification_No: identification_No,
             name: name,
-            password: hashed,
             gender: gender,
             ethnicity: ethnicity,
             temperature: temperature,
@@ -192,25 +191,26 @@ async function updateVisitor(identification_No, name, gender, ethnicity, tempera
 
 
 //Logs function
-async function logs(identification_No, name, role){
-    // Get the current date and time
-    const currentDate = new Date();
+async function logs(identification_No, name, role) {
+    const options = { timeZone: 'Asia/Kuala_Lumpur' }; // Set the time zone to Malaysia
 
-    // Format the date
-    const formattedDate = currentDate.toLocaleDateString(); // Format: MM/DD/YYYY
+    // Get the current date and time in Malaysia
+    const currentDate = new Date().toLocaleDateString('en-MY', options);
+    const currentTime = new Date().toLocaleTimeString('en-MY', options);
 
-    // Format the time
-    const formattedTime = currentDate.toLocaleTimeString(); // Format: HH:MM:SS
-    await client.connect()
+    await client.connect();
+
+    // Insert the log with the formatted local date and time
     client.db("VMS").collection("Logs").insertOne({
         identification_No: identification_No,
         name: name,
         Type: role,
-        date: formattedDate,
-        entry_time: formattedTime,
+        date: currentDate,
+        entry_time: currentTime,
         exit_time: "pending"
-    })
+    });
 }
+
     
 //login for staff
 async function login(res, identification, hashedPassword) {
@@ -231,35 +231,36 @@ async function login(res, identification, hashedPassword) {
     }
 }
 
-async function visitorLogin(res, Identification_No, password){
+async function visitorLogin(res, Identification_No){
     await client.connect();
     const exist = await client.db("VMS").collection("Visitors").findOne({identification_No: Identification_No});
     if(exist){
-        if(bcrypt.compare(password,await exist.password)){
-        console.log("Welcome!");
-        token = jwt.sign({ identification_No: Identification_No, role: exist.visitor_category}, privatekey);
-        res.send("Token: "+ token);
+        res.send("Welcome!");
         //Masukkan logs
         await logs(Identification_No, exist.name, exist.visitor_category);
-        }else{
-            console.log("Wrong password!")
-        }
-    }else{
-        console.log("Visitor not registered!");
+    } else {
+        res.send("Visitor not registered!");
     }
 }
 
-
 //view visitor
-async function viewVisitors(identification_No, role){
-    var exist;
-    await client.connect();
-    if(role == "Admin" || role == "Staff" || role == "Security"){
-        exist = client.db("VMS").collection("Visitors").find({}).toArray();
-    }else if (role == "Guest"){
-        exist = await client.db("VMS").collection("Visitors").findOne({identification_No:identification_No});
+async function viewVisitors(identification_No, role) {
+    try {
+        await client.connect();
+        let exist;
+
+        if (role === "Admin" || role === "Staff" || role === "Security") {
+            exist = await client.db("VMS").collection("Visitors").find({}).toArray();
+        } else {
+            exist = await client.db("VMS").collection("Visitors").findOne({ identification_No: identification_No });
+        }
+
+        return exist;
+    } catch (error) {
+        // Handle errors appropriately
+        console.error("An error occurred:", error.message);
+        return null; // Return null or another suitable value to indicate an error
     }
-    return exist;
 }
 
 
@@ -284,8 +285,6 @@ async function viewVisitors(identification_No, role){
  *               identification_No:
  *                 type: string
  *               name:
- *                 type: string
- *               password:
  *                 type: string
  *               gender:
  *                 type: string
@@ -386,21 +385,32 @@ async function viewVisitors(identification_No, role){
  *       name: "Authorization"
  *       in: "header"
  */
-
 app.post('/user/registerVisitor', async function(req, res){
     var token = req.header('Authorization').split(" ")[1];
     try {
         var decoded = jwt.verify(token, privatekey);
-        console.log(decoded.role);
-      } catch(err) {
-        console.log("Error!");
-      }
-    console.log(decoded);
-    if (await decoded.role == "Staff" || await decoded.role == "Admin"){
-        const {identification_No, name, password, gender, ethnicity, temperature, dateofbirth, citizenship, document_type, expiryDate, address, town, postcode, state, country, phone_number, vehicle_number, vehicle_type, visitor_category, preregistered_pass, no_of_visitors, purpose_of_visit, visit_limit_hrs, visit_limit_min, To_meet, Host_Information, Location_or_department, Unit_no, Location_Information, Permit_number, Delivery_Order, Remarks, fever, sore_throat, dry_cough, runny_nose, shortness_of_breath, body_ache, travelled_oversea_last_14_days, contact_with_person_with_Covid_19, recovered_from_covid_19, covid_19_test, date} = req.body;
-        await register(identification_No, name,password, gender, ethnicity, temperature, dateofbirth, citizenship, document_type, expiryDate, address, town, postcode, state, country, phone_number, vehicle_number, vehicle_type, visitor_category, preregistered_pass, no_of_visitors, purpose_of_visit, visit_limit_hrs, visit_limit_min, To_meet, Host_Information, Location_or_department, Unit_no, Location_Information, Permit_number, Delivery_Order, Remarks, fever, sore_throat, dry_cough, runny_nose, shortness_of_breath, body_ache, travelled_oversea_last_14_days, contact_with_person_with_Covid_19, recovered_from_covid_19, covid_19_test, date);
-    }else{
-        console.log("You have no access!");
+        if (!decoded || !decoded.role) {
+            res.status(401).send("Unauthorized");
+            return;
+        }
+    } catch(err) {
+        res.status(500).send("Error!");
+        return;
+    }
+    if (decoded.role === "Staff" || decoded.role === "Admin") {
+        const {
+            identification_No, name, gender, ethnicity, temperature, dateofbirth, citizenship, document_type, expiryDate, address, town, postcode, state, country, phone_number, vehicle_number, vehicle_type, visitor_category, preregistered_pass, no_of_visitors, purpose_of_visit, visit_limit_hrs, visit_limit_min, To_meet, Host_Information, Location_or_department, Unit_no, Location_Information, Permit_number, Delivery_Order, Remarks, fever, sore_throat, dry_cough, runny_nose, shortness_of_breath, body_ache, travelled_oversea_last_14_days, contact_with_person_with_Covid_19, recovered_from_covid_19, covid_19_test, date
+        } = req.body;
+
+        try {
+            await register(identification_No, name, gender, ethnicity, temperature, dateofbirth, citizenship, document_type, expiryDate, address, town, postcode, state, country, phone_number, vehicle_number, vehicle_type, visitor_category, preregistered_pass, no_of_visitors, purpose_of_visit, visit_limit_hrs, visit_limit_min, To_meet, Host_Information, Location_or_department, Unit_no, Location_Information, Permit_number, Delivery_Order, Remarks, fever, sore_throat, dry_cough, runny_nose, shortness_of_breath, body_ache, travelled_oversea_last_14_days, contact_with_person_with_Covid_19, recovered_from_covid_19, covid_19_test, date);
+            res.send("Registered visitor successfully!");
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("An error occurred while registering the visitor");
+        }
+    } else {
+        res.status(403).send("Forbidden: You do not have access");
     }
 });
 
@@ -452,16 +462,16 @@ app.post('/user/login', async function(req, res){
  *     description: Logout user by updating exit time in logs
  *     tags:
  *       - Staff
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
- *       required: true
+ *       required: false
  *       content:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
- *               identification_No:
- *                 type: string
- *               password:
+ *               token:
  *                 type: string
  *     responses:
  *       '200':
@@ -470,19 +480,24 @@ app.post('/user/login', async function(req, res){
  *         description: Invalid request body or user not logged in before
  */
 app.post('/user/logout', async function(req, res){
-    const {identification_No, password} = req.body;
-    const currentDate = new Date();
-    const formattedTime = currentDate.toLocaleTimeString(); // Format: HH:MM:SS
-    await client.connect();
-    const exist = await client.db("VMS").collection("UserInfo").findOne({identification_No: identification_No});
-    if(exist){
-        if(await exist.password == password){
-            await client.db("VMS").collection("Logs").updateOne({ identification_No: identification_No },{ $set: { exit_time: formattedTime } });
-            res.send("Successfully log Out!\nCheck out time: "+ formattedTime);
+    try {
+        const token = req.headers.authorization.split(' ')[1];
+        const decodedToken = jwt.verify(token, privatekey);
+
+        const exitTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Kuala_Lumpur" }); // Set exit time in Malaysia time zone
+
+        await client.connect();
+        const exist = await client.db("VMS").collection("UserInfo").findOne({ identification_No: decodedToken.identification_No });
+        if(exist){
+            await client.db("VMS").collection("Logs").updateOne({ identification_No: decodedToken.identification_No }, { $set: { exit_time: exitTime } });
+            res.send(`Successfully logged out!\nCheck out time: ${exitTime}`);
             console.log(exist.exit_time);
+        } else {
+            res.send("User not found!");
         }
-    }else{
-        res.send("User not logged In before!")
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'An error occurred' });
     }
 });
 
@@ -564,8 +579,6 @@ if(decoded.role == "Admin"|| decoded.role == "Staff"){
  *             properties:
  *               identification_No:
  *                 type: string
- *               password:
- *                  type: string
  *     responses:
  *       '200':
  *         description: Visitor login successful
@@ -573,8 +586,8 @@ if(decoded.role == "Admin"|| decoded.role == "Staff"){
  *         description: Invalid credentials or visitor not found
  */
 app.post('/visitor/login', async function(req, res){
-    const {identification_No, password} = req.body;
-    visitorLogin(res, identification_No, password);
+    const {identification_No} = req.body;
+    visitorLogin(res, identification_No);
 });
 
 //View Visitor
