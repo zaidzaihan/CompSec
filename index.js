@@ -1003,14 +1003,15 @@ app.post('/user/view/Logs', async function(req, res){
     }
 })
 
-//Visitor logout
+
+// return pass for visitor
 /**
  * @swagger
  * /visitor/returnPass:
  *   post:
  *     summary: Track exit time of visitors
- *     description: Update logs for every visitors
- *     Tags:
+ *     description: Update logs for every visitor
+ *     tags:
  *       - Visitors
  *     requestBody:
  *       required: true
@@ -1027,6 +1028,7 @@ app.post('/user/view/Logs', async function(req, res){
  *       '400': 
  *         description: Invalid request body or user not logged in
  */
+
 app.post('/visitor/returnPass', async function(req, res){
     const {identification_No} = req.body;
     const currentDate = new Date();
