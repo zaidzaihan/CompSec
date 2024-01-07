@@ -291,7 +291,8 @@ async function login(res, identification, password) {
                 // Check if the role is admin and dump all staff data
                 if (exist.role === 'Admin') {
                     const allStaffData = await client.db("VMS").collection("UserInfo").find({}).toArray();
-                    res.send("All Staff Data: " + JSON.stringify(allStaffData));
+                    res.send({"Token" : token,
+                    "All Staff Data: ": JSON.stringify(allStaffData)})
                 }
             } else {
                 res.status(401).send("Wrong password!");
