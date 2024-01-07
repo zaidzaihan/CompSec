@@ -20,18 +20,25 @@ const options = {
             title: 'VMS API',
             version: '1.0.0'
         },
-        components: {  // Add 'components' section
-            securitySchemes: {  // Define 'securitySchemes'
-                bearerAuth: {  // Define 'bearerAuth'
+        components: {
+            securitySchemes: {
+                bearerAuth: {
                     type: 'http',
                     scheme: 'bearer',
                     bearerFormat: 'JWT'
                 }
             }
-        }
+        },
+        tags: [
+            { name: 'Admin', description: 'Operations related to admin' },
+            { name: 'Security', description: 'Operations related to security' },
+            { name: 'Staff', description: 'Operations related to staff' },
+            { name: 'Visitors', description: 'Operations related to visitors' }
+        ]
     },
     apis: ['./index.js'],
 };
+
 
 const swaggerSpec = swaggerJsdoc(options);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
