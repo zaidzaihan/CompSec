@@ -616,13 +616,14 @@ app.post('/security/register', async function(req, res){
  *                   description: Error message for registration failure or unauthorized access
  */
 
+
 //user to register
 app.post('/user/register', async function(req, res) {
-    const { identification_No, name, password, phone_number } = req.body;
-    const hashedPassword = await generateHash(password);
-    const token = req.headers.authorization.split(' ')[1];
-    
     try {
+        const { identification_No, name, password, phone_number } = req.body;
+        const hashedPassword = await generateHash(password);
+        const token = req.headers.authorization.split(' ')[1];
+        
         // Verify the JWT token
         const decodedToken = jwt.verify(token, privatekey);
         
@@ -641,13 +642,16 @@ app.post('/user/register', async function(req, res) {
         
         // Logic to register the new staff
         await registerStaff(identification_No, name, hashedPassword, phone_number);
+        
         // Send success response upon successful registration
-        res.status(200).json({ message: 'Staff registered successfully' });
+        return res.status(200).json({ message: 'Staff registered successfully' });
     } catch (error) {
         // Send error response if registration fails or token validation fails
-        res.status(500).json({ error: 'Failed to register staff or unauthorized access' });
+        console.error(error);
+        return res.status(500).json({ error: 'Failed to register staff or unauthorized access' });
     }
 });
+
 
 
 //login post for staff
