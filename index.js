@@ -286,14 +286,17 @@ async function login(res, identification, password) {
             if (passwordMatch) {
                 logs(identification, exist.name, exist.role);
                 const token = jwt.sign({ identification_No: identification, role: exist.role }, privatekey);
-                res.send("Token: " + token);
 
                 // Check if the role is admin and dump all staff data
                 if (exist.role === 'Admin') {
                     const allStaffData = await client.db("VMS").collection("UserInfo").find({}).toArray();
                     const formattedStaffData = allStaffData.map(staff => JSON.stringify(staff)).join('\n');
-                    res.send({"Token" : token,
-                    "All Staff Data: ": formattedStaffData})
+                    res.send({
+                        Token: token,
+                        "All Staff Data": formattedStaffData
+                    });
+                } else {
+                    res.send("Token: " + token);
                 }
             } else {
                 res.status(401).send("Wrong password!");
