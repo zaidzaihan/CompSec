@@ -522,7 +522,7 @@ app.post('/user/registerVisitor', async function(req, res){
  *                   type: string
  *                   description: Success message
  *       '400':
- *         description: Identification number already exists
+ *         description: Identification number already exists or bad request
  *         content:
  *           application/json:
  *             schema:
@@ -530,9 +530,9 @@ app.post('/user/registerVisitor', async function(req, res){
  *               properties:
  *                 error:
  *                   type: string
- *                   description: Error message for existing identification number
+ *                   description: Error message for existing identification number or bad request
  *       '500':
- *         description: Registration failed
+ *         description: Registration failed or internal server error
  *         content:
  *           application/json:
  *             schema:
@@ -540,8 +540,9 @@ app.post('/user/registerVisitor', async function(req, res){
  *               properties:
  *                 error:
  *                   type: string
- *                   description: Error message for registration failure
+ *                   description: Error message for registration failure or internal server error
  */
+
 app.post('/security/register', async function(req, res){
     const { identification_No, name, password } = req.body;
     const hashedPassword = await generateHash(password);
