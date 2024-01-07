@@ -711,21 +711,11 @@ app.post('/user/login', async function(req, res){
  *       - Admin
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       required: false
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               token:
- *                 type: string
- *                 description: User's authentication token
  *     responses:
  *       '200':
  *         description: User successfully logged out
  *       '400':
- *         description: Invalid request body or user not logged in before
+ *         description: Invalid request or user not logged in before
  */
 const blacklistedTokens = [];
 
