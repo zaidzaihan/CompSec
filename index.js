@@ -228,10 +228,8 @@ async function updateVisitor(host, identification_No, name, gender, ethnicity, t
         const exist = await client.db("VMS").collection("UserInfo").findOne({ identification_No });
 
         if (exist) {
-            // Security personnel with the provided identification number already exists
             res.status(400).send({ error: "Identification number already exists" });
         } else {
-            // Create the new security personnel
             const newSecurityPersonnel = {
                 identification_No,
                 name,
@@ -239,10 +237,8 @@ async function updateVisitor(host, identification_No, name, gender, ethnicity, t
                 role: "Security"
             };
 
-            // Add logic to insert new security personnel to the database
             const result = await client.db("VMS").collection("UserInfo").insertOne(newSecurityPersonnel);
-
-            if (result.insertedCount === 1) {
+            if (result) {
                 res.status(200).send({ message: "Security personnel registered successfully" });
             } else {
                 res.status(500).send({ error: "Registration failed" });
