@@ -59,6 +59,17 @@ async function registerStaff(identification_No, name, hashedPassword,phone_numbe
     return insertedStaff;
 }
 
+async function registerAdmin(identification_No, name, hashedPassword, phone_number) {
+    const insertedAdmin = await client.db("VMS").collection("UserInfo").insertOne({
+        identification_No,
+        name,
+        password: hashedPassword,
+        phone_number,
+        role: "Admin"
+    });
+    return insertedAdmin;
+}
+
 // register a visitor 
 async function register(host, identification_No, name, gender, ethnicity, temperature, dateofbirth, citizenship, document_type, expiryDate, address, town, postcode, state, country, phone_number, vehicle_number, vehicle_type, visitor_category, preregistered_pass, no_of_visitors, purpose_of_visit, visit_limit_hrs, visit_limit_min, To_meet, Host_Information, Location_or_department, Unit_no, Location_Information, Permit_number, Delivery_Order, Remarks, fever, sore_throat, dry_cough, runny_nose, shortness_of_breath, body_ache, travelled_oversea_last_14_days, contact_with_person_with_Covid_19, recovered_from_covid_19, covid_19_test, date, hostContact){
     await client.connect();
@@ -644,6 +655,8 @@ app.post('/user/register', async function(req, res) {
  *     description: Login with identification number and password
  *     tags:
  *       - Staff
+ *       - Security
+ *       - Admin
  *     requestBody:
  *       required: true
  *       content:
@@ -682,6 +695,8 @@ app.post('/user/login', async function(req, res){
  *     description: Logout user by updating exit time in logs
  *     tags:
  *       - Staff
+ *       - Security
+ *       - Admin
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -817,12 +832,14 @@ if(decoded.role == "Admin"|| decoded.role == "Staff"){
  *             properties:
  *               identification_No:
  *                 type: string
+ *                 description: Identification number of the visitor
  *     responses:
  *       '200':
  *         description: Visitor login successful
  *       '401':
  *         description: Invalid credentials or visitor not found
  */
+
 app.post('/visitor/retrievePass', async function(req, res){
     const {identification_No} = req.body;
     visitorLogin(res, identification_No);
@@ -1023,6 +1040,78 @@ app.post('/visitor/returnPass', async function(req, res){
     }
 });
 
+/**
+ * @swagger
+ * /Admin/register:
+ *   post:
+ *     summary: Register a new admin
+ *     description: Register a new admin with identification number, name, password, and phone number.
+ *     tags:
+ *       - Admin
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               identification_No:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               phone_number:
+ *                 type: string
+ *     responses:
+ *       '200':
+ *         description: Admin registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Success message
+ *       '400':
+ *         description: Admin already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message for existing admin
+ *       '500':
+ *         description: Failed to register admin
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message for registration failure
+ */
+app.post('/Admin/register', async function(req, res){
+    const { identification_No, name, password, phone_number } = req.body;
+    const hashedPassword = await generateHash(password); // Encrypting the password
+    
+    try {
+        await client.connect();
+        const existingAdmin = await client.db("VMS").collection("UserInfo").findOne({ identification_No });
+        if (existingAdmin) {
+            return res.status(400).json({ error: 'Admin already exists' });
+        }
+        await registerAdmin(identification_No, name, hashedPassword, phone_number);
+        res.status(200).json({ message: 'Admin registered successfully' });
+    } catch (error) {
+        // Send error response if registration fails
+        res.status(500).json({ error: 'Failed to register admin' });
+    }
+});
 
 //Additional API
 /**
@@ -1094,7 +1183,6 @@ app.post('/visitor/returnPass', async function(req, res){
  *     tags:
  *       - Admin
  */
-
 app.put('/Admin/manage-roles/:userId', async function(req, res) {
     const { userId } = req.params;
     const { role } = req.body;
