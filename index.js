@@ -557,7 +557,7 @@ app.post('/security/register', async function(req, res){
  *     summary: Register a new staff member
  *     description: Register a new staff member with identification number, name, password, and phone number.
  *     tags:
- *       - User
+ *       - Security
  *     requestBody:
  *       required: true
  *       content:
