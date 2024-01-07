@@ -55,7 +55,7 @@ async function generateHash(password) {
     return hashedPassword;
 }
 
-async function registerStaff(identification_No, name, hashedPassword,phone_number) {
+async function registerStaff(identification_No, name, hashedPassword, phone_number) {
     const insertedStaff = await client.db("VMS").collection("UserInfo").insertOne({
         identification_No,
         name,
@@ -616,11 +616,6 @@ app.post('/security/register', async function(req, res){
  *                 error:
  *                   type: string
  *                   description: Error message for registration failure or unauthorized access
- *   securitySchemes:
- *     BearerAuth:
- *       type: http
- *       scheme: bearer
- *       bearerFormat: JWT
  */
 
 //user to register
