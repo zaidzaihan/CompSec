@@ -853,7 +853,8 @@ app.post('/visitor/retrievePass', async function(req, res){
  *     summary: "View visitors"
  *     description: "Retrieve visitors based on user role"
  *     tags:
- *       - Staff & Visitors
+ *       - Staff
+ *       - Visitors
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -1006,11 +1007,11 @@ app.post('/user/view/Logs', async function(req, res){
 /**
  * @swagger
  * /visitor/returnPass:
- *   tags:
- *     - Visitors
  *   post:
  *     summary: Track exit time of visitors
  *     description: Update logs for every visitors
+ *     Tags:
+ *       - Visitors
  *     requestBody:
  *       required: true
  *       content:
