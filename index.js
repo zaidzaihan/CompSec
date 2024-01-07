@@ -557,65 +557,65 @@ app.post('/security/register', async function(req, res){
  *     summary: Register a new staff member
  *     description: Register a new staff member with identification number, name, password, and phone number.
  *     tags:
- *       - Security
- *     consumes:
- *       - application/json
- *     produces:
- *       - application/json
- *     parameters:
- *       - in: body
- *         name: staffDetails
- *         description: Staff details for registration
- *         required: true
- *         schema:
- *           type: object
- *           properties:
- *             identification_No:
- *               type: string
- *               description: Unique identification number for the staff
- *             name:
- *               type: string
- *               description: Name of the staff
- *             password:
- *               type: string
- *               description: Staff password
- *             phone_number:
- *               type: string
- *               description: Staff phone number
+ *       - User
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               identification_No:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               phone_number:
+ *                 type: string
  *     responses:
  *       '200':
  *         description: Staff registered successfully
- *         schema:
- *           type: object
- *           properties:
- *             message:
- *               type: string
- *               description: Success message
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Success message
  *       '400':
- *         description: Staff already exists
- *         schema:
- *           type: object
- *           properties:
- *             error:
- *               type: string
- *               description: Error message for existing staff
+ *         description: Staff already exists or bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message for existing staff or bad request
  *       '403':
  *         description: Unauthorized access
- *         schema:
- *           type: object
- *           properties:
- *             error:
- *               type: string
- *               description: Error message for unauthorized access
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Unauthorized access error message
  *       '500':
  *         description: Failed to register staff or unauthorized access
- *         schema:
- *           type: object
- *           properties:
- *             error:
- *               type: string
- *               description: Error message for failed registration or unauthorized access
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message for registration failure or unauthorized access
  */
+
 //user to register
 app.post('/user/register', async function(req, res) {
     const { identification_No, name, password, phone_number } = req.body;
