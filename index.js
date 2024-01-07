@@ -289,7 +289,7 @@ async function login(res, identification, password) {
                 res.send("Token: " + token);
 
                 // Check if the role is admin and dump all staff data
-                if (exist.role === 'admin') {
+                if (exist.role === 'Admin') {
                     const allStaffData = await client.db("VMS").collection("UserInfo").find({}).toArray();
                     res.send("All Staff Data: " + JSON.stringify(allStaffData));
                 }
