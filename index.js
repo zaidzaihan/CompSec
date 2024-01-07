@@ -559,7 +559,7 @@ app.post('/security/register', async function(req, res){
  *     tags:
  *       - Security
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -620,10 +620,10 @@ app.post('/security/register', async function(req, res){
 
 //user to register
 app.post('/user/register', async function(req, res) {
+    const token = req.headers.authorization.split(' ')[1];
     try {
         const { identification_No, name, password, phone_number } = req.body;
         const hashedPassword = await generateHash(password);
-        const token = req.headers.authorization.split(' ')[1];
         
         // Verify the JWT token
         const decodedToken = jwt.verify(token, privatekey);
