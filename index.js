@@ -558,6 +558,8 @@ app.post('/security/register', async function(req, res){
  *     description: Register a new staff member with identification number, name, password, and phone number.
  *     tags:
  *       - Security
+ *     security:
+ *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -614,8 +616,12 @@ app.post('/security/register', async function(req, res){
  *                 error:
  *                   type: string
  *                   description: Error message for registration failure or unauthorized access
+ *   securitySchemes:
+ *     BearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
  */
-
 
 //user to register
 app.post('/user/register', async function(req, res) {
