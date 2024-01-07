@@ -49,8 +49,6 @@ async function generateHash(password) {
 }
 
 async function registerStaff(identification_No, name, hashedPassword,phone_number) {
-    // Perform operations to register a new staff in the database
-    // Example: Inserting the staff data into the database
     const insertedStaff = await client.db("VMS").collection("UserInfo").insertOne({
         identification_No,
         name,
@@ -262,12 +260,12 @@ async function logs(identification_No, name, role) {
 
     
 //login for staff
-async function login(res, identification, hashedPassword) {
+async function login(res, identification, password) {
     await client.connect();
     try {
         const exist = await client.db("VMS").collection("UserInfo").findOne({ identification_No: identification });
         if (exist) {
-            const passwordMatch = await bcrypt.compare(exist.password, hashedPassword);
+            const passwordMatch = await bcrypt.compare(password, exist.password);
             if (passwordMatch) {
                 logs(identification, exist.name, exist.role);
                 const token = jwt.sign({ identification_No: identification, role: exist.role }, privatekey);
@@ -542,6 +540,9 @@ app.post('/security/register', async function(req, res){
  * /user/register:
  *   post:
  *     summary: Register a new staff member
+ *     description: Register a new staff member with identification number, name, password, and phone number.
+ *     tags:
+ *       - Security
  *     consumes:
  *       - application/json
  *     produces:
@@ -599,8 +600,6 @@ app.post('/security/register', async function(req, res){
  *             error:
  *               type: string
  *               description: Error message for failed registration or unauthorized access
- *     tags:
- *       - Security
  */
 //user to register
 app.post('/user/register', async function(req, res) {
@@ -670,8 +669,7 @@ app.post('/user/register', async function(req, res) {
  */
 app.post('/user/login', async function(req, res){
     const { identification_No, password } = req.body;
-    const hashedPassword = await generateHash(password);
-    await login(res, identification_No, hashedPassword);
+    await login(res, identification_No, password);
 });
 
 
@@ -695,15 +693,24 @@ app.post('/user/login', async function(req, res){
  *             properties:
  *               token:
  *                 type: string
+ *                 description: User's authentication token
  *     responses:
  *       '200':
  *         description: User successfully logged out
  *       '400':
  *         description: Invalid request body or user not logged in before
  */
+const blacklistedTokens = [];
+
 app.post('/user/logout', async function(req, res){
     try {
         const token = req.header('Authorization').split(' ')[1];
+
+        // Check if the token is blacklisted
+        if (blacklistedTokens.includes(token)) {
+            return res.status(401).json({ message: 'User already logged out. Please reauthenticate.' });
+        }
+
         const decodedToken = jwt.verify(token, privatekey);
 
         const currentDate = new Date();
@@ -711,10 +718,17 @@ app.post('/user/logout', async function(req, res){
 
         await client.connect();
         const exist = await client.db("VMS").collection("UserInfo").findOne({ identification_No: decodedToken.identification_No });
-        if(exist){
-            await client.db("VMS").collection("Logs").updateOne({ identification_No: decodedToken.identification_No }, { $set: { exit_time: exitTime, date: currentDate.toLocaleDateString() } });
+        if (exist) {
+            // Update logs with exit time
+            await client.db("VMS").collection("Logs").updateOne(
+                { identification_No: decodedToken.identification_No },
+                { $set: { exit_time: exitTime, date: currentDate.toLocaleDateString() } }
+            );
+
+            // Add the token to the blacklist
+            blacklistedTokens.push(token);
+
             res.send(`Successfully logged out!\nCheck out time: ${exitTime}`);
-            console.log(exist.exit_time);
         } else {
             res.send("User not found!");
         }
@@ -723,6 +737,7 @@ app.post('/user/logout', async function(req, res){
         res.status(500).json({ message: 'An error occurred' });
     }
 });
+
 
 
 //delete visitors
