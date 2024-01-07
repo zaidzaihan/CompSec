@@ -29,6 +29,9 @@ const options = {
                 }
             }
         },
+        security: [{
+            bearerAuth: []
+        }],
         tags: [
             { name: 'Admin', description: 'Operations related to admin' },
             { name: 'Security', description: 'Operations related to security' },
