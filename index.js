@@ -1257,9 +1257,9 @@ app.put('/Admin/manage-roles/:userId', async function(req, res) {
         }
 
         await client.connect();
-        const updatedUser = await client.db("VMS").collection("UserInfo").findOneAndUpdate(
-            { _id: ObjectId(userId) },
-            { $set: { role } },
+        const updatedUser = await client.db("VMS").findOneAndUpdate(
+            { identification_No: userId },
+            { $set: { role: role } },
             { returnOriginal: false }
         );
 
