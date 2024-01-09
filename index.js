@@ -1267,20 +1267,15 @@ app.put('/Admin/manage-roles/:userId', async function(req, res) {
         if (decodedToken.role !== 'Admin') {
             return res.status(403).json({ error: 'Unauthorized access' });
         }
-
         await client.connect();
-        const db = client.db("VMS");
-        const collection = db.collection("UserInfo");
-
-        const userToUpdate = await collection.findOne({ identification_No: userId });
-
+        const userToUpdate = await client.db("VMS").collection("UserInfo").findOne({ identification_No: userId });
         if (userToUpdate) {
-            const updatedUser = await collection.updateOne(
+            const updatedUser = await client.db("VMS").collection("UserInfo").updateOne(
                 { identification_No: userId },
                 { $set: { role: role } }
             );
 
-            if (updatedUser.modifiedCount > 0) {
+            if (updatedUser) {
                 const updatedUserData = await collection.findOne({ identification_No: userId });
                 res.status(200).json({ message: 'Account role updated successfully', updatedUser: updatedUserData });
             } else {
@@ -1289,8 +1284,6 @@ app.put('/Admin/manage-roles/:userId', async function(req, res) {
         } else {
             res.status(404).json({ error: 'User not found' });
         }
-
-        client.close(); // Close the database connection
     } catch (error) {
         res.status(500).json({ error: 'Failed to update account role or unauthorized access' });
     }
