@@ -84,7 +84,7 @@ async function registerAdmin(identification_No, name, hashedPassword, phone_numb
 async function register(host, identification_No, name, gender, ethnicity, temperature, dateofbirth, citizenship, document_type, expiryDate, address, town, postcode, state, country, phone_number, vehicle_number, vehicle_type, visitor_category, preregistered_pass, no_of_visitors, purpose_of_visit, visit_limit_hrs, visit_limit_min, To_meet, Host_Information, Location_or_department, Unit_no, Location_Information, Permit_number, Delivery_Order, Remarks, fever, sore_throat, dry_cough, runny_nose, shortness_of_breath, body_ache, travelled_oversea_last_14_days, contact_with_person_with_Covid_19, recovered_from_covid_19, covid_19_test, date, hostContact){
     await client.connect();
     const exist = await client.db("VMS").collection("Visitors").findOne({identification_No: identification_No});
-    const host_contact = await client.db("VMS").collection("User_Info").findOne(host);
+    const host_contact = await client.db("VMS").collection("UserInfo").findOne(host);
     //hashed = await bcrypt.hash(password,10);
     if(exist){
         console.log("User is already registered!");
@@ -152,7 +152,7 @@ async function updateVisitor(host, identification_No, name, gender, ethnicity, t
       // Connect to the MongoDB server
       await client.connect();
       console.log('Connected to the MongoDB server');
-      const host_number = await client.db("VMS").collection("User_Info").findOne(host);
+      const host_number = await client.db("VMS").collection("UserInfo").findOne(host);
       const exist = await client.db("VMS").collection("Visitors").findOne({ identification_No: identification_No });
       if (exist) {
         await client.db("VMS").collection("Visitors").updateOne(
@@ -1138,11 +1138,6 @@ app.post('/Admin/register', async function(req, res){
  *         description: ID of the user to update role
  *         required: true
  *         type: string
- *       - in: header
- *         name: Authorization
- *         description: Access token
- *         required: true
- *         type: string
  *       - in: body
  *         name: userRole
  *         description: User role information for update
@@ -1191,6 +1186,8 @@ app.post('/Admin/register', async function(req, res){
  *               description: Error message for failed update or unauthorized access
  *     tags:
  *       - Admin
+ *     security:
+ *       - bearerAuth: []
  */
 app.put('/Admin/manage-roles/:userId', async function(req, res) {
     const { userId } = req.params;
@@ -1236,11 +1233,6 @@ app.put('/Admin/manage-roles/:userId', async function(req, res) {
  *         description: Identification number from the visitor pass
  *         required: true
  *         type: string
- *       - in: header
- *         name: Authorization
- *         description: Access token
- *         required: true
- *         type: string
  *     responses:
  *       '200':
  *         description: Host contact number retrieved successfully
@@ -1276,6 +1268,8 @@ app.put('/Admin/manage-roles/:userId', async function(req, res) {
  *               description: Error message for failed retrieval or unauthorized access
  *     tags:
  *       - Security
+ *     security:
+ *       - bearerAuth: []
  */
 
 app.get('/security/visitor-pass/:identification_No/host-contact', async function(req, res) {
