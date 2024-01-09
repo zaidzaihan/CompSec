@@ -1276,7 +1276,7 @@ app.put('/Admin/manage-roles/:userId', async function(req, res) {
             );
 
             if (updatedUser) {
-                const updatedUserData = await collection.findOne({ identification_No: userId });
+                const updatedUserData = await client.db("VMS").collection("UserInfo").findOne({ identification_No: userId });
                 res.status(200).json({ message: 'Account role updated successfully', updatedUser: updatedUserData });
             } else {
                 res.status(500).json({ error: 'Failed to update user role' });
