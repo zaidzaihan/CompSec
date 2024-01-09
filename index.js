@@ -279,8 +279,8 @@ async function logs(identification_No, name, role) {
     
 //login for staff
 async function login(res, identification, password) {
-    await client.connect();
     try {
+        await client.connect();
         const exist = await client.db("VMS").collection("UserInfo").findOne({ identification_No: identification });
         if (exist) {
             const passwordMatch = await bcrypt.compare(password, exist.password);
@@ -628,8 +628,8 @@ app.post('/security/register', async function(req, res){
 
 //user to register
 app.post('/user/register', async function(req, res) {
-    const token = req.headers.authorization.split(' ')[1];
     try {
+        const token = req.headers.authorization.split(' ')[1];
         const { identification_No, name, password, phone_number } = req.body;
         const hashedPassword = await generateHash(password);
         
@@ -861,7 +861,6 @@ app.post('/visitor/retrievePass', async function(req, res){
  *     description: "Retrieve visitors based on user role"
  *     tags:
  *       - Staff
- *       - Visitors
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -875,15 +874,10 @@ app.post('/visitor/retrievePass', async function(req, res){
  *       - "application/json"
  *     produces:
  *       - "application/json"
- *   securityDefinitions:
- *     JWT:
- *       type: "apiKey"
- *       name: "Authorization"
- *       in: "header"
  */
 app.post('/user/view/visitor', async function(req, res){
-    var token = req.header('Authorization').split(" ")[1];
     try {
+        var token = req.header('Authorization').split(" ")[1];
         var decoded = jwt.verify(token, privatekey);
         console.log(decoded.role);
         res.send(await viewVisitors(decoded.identification_No, decoded.role));
@@ -1019,7 +1013,7 @@ app.post('/user/updateVisitor', async function(req, res){
     if(decoded.role == "Admin" || decoded.role == "Staff"){
         await updateVisitor(identification_No, name, gender, ethnicity, temperature, dateofbirth, citizenship, document_type, expiryDate, address, town, postcode, state, country, phone_number, vehicle_number, vehicle_type, visitor_category, preregistered_pass, no_of_visitors, purpose_of_visit, visit_limit_hrs, visit_limit_min, To_meet, Host_Information, Location_or_department, Unit_no, Location_Information, Permit_number, Delivery_Order, Remarks, fever, sore_throat, dry_cough, runny_nose, shortness_of_breath, body_ache, travelled_oversea_last_14_days, contact_with_person_with_Covid_19, recovered_from_covid_19, covid_19_test, date);
     }else{
-        console.log("No access!");
+        res.send("No access!");
     }
 });
 
@@ -1163,7 +1157,6 @@ app.post('/visitor/returnPass', async function(req, res){
 app.post('/Admin/register', async function(req, res){
     const { identification_No, name, password, phone_number } = req.body;
     const hashedPassword = await generateHash(password); // Encrypting the password
-    
     try {
         await client.connect();
         const existingAdmin = await client.db("VMS").collection("UserInfo").findOne({ identification_No });
@@ -1271,7 +1264,7 @@ app.put('/Admin/manage-roles/:userId', async function(req, res) {
       await client.connect();
   
       const { userId } = req.params;
-      const { role } = req.body;
+      const { role } =  await req.body;
       const token = req.headers.authorization.split(' ')[1];
   
       const decodedToken = jwt.verify(token, privatekey);
@@ -1289,7 +1282,9 @@ app.put('/Admin/manage-roles/:userId', async function(req, res) {
         );
   
         if (updatedUser.matchedCount > 0) {
-          res.status(200).json({ message: 'Account role updated successfully' });
+          res.status(200).json({ message: 'Account role updated successfully',
+          updatedUser
+        });
         } else {
           res.status(500).json({ error: 'Failed to update user role' });
         }
