@@ -930,11 +930,70 @@ app.post('/user/view/visitor', async function(req, res){
  *               expiryDate:
  *                 type: string
  *                 format: date
- *               # Add other properties here...
+ *               address:
+ *                 type: string
+ *               town:
+ *                 type: string
+ *               postcode:
+ *                 type: string
+ *               state:
+ *                 type: string
+ *               country:
+ *                 type: string
+ *               phone_number:
+ *                 type: string
+ *               vehicle_number:
+ *                 type: string
+ *               vehicle_type:
+ *                 type: string
+ *               visitor_category:
+ *                 type: string
+ *               preregistered_pass:
+ *                 type: string
+ *               no_of_visitors:
+ *                 type: integer
+ *               purpose_of_visit:
+ *                 type: string
+ *               visit_limit_hrs:
+ *                 type: integer
+ *               visit_limit_min:
+ *                 type: integer
+ *               To_meet:
+ *                 type: string
+ *               Host_Information:
+ *                 type: string
+ *               Location_or_department:
+ *                 type: string
+ *               Unit_no:
+ *                 type: string
+ *               Location_Information:
+ *                 type: string
+ *               Permit_number:
+ *                 type: string
+ *               Delivery_Order:
+ *                 type: string
+ *               Remarks:
+ *                 type: string
+ *               fever:
+ *                 type: boolean
+ *               sore_throat:
+ *                 type: boolean
+ *               dry_cough:
+ *                 type: boolean
+ *               runny_nose:
+ *                 type: boolean
+ *               shortness_of_breath:
+ *                 type: boolean
+ *               body_ache:
+ *                 type: boolean
+ *               travelled_oversea_last_14_days:
+ *                 type: boolean
+ *               contact_with_person_with_Covid_19:
+ *                 type: boolean
  *               recovered_from_covid_19:
- *                 type: string
+ *                 type: boolean
  *               covid_19_test:
- *                 type: string
+ *                 type: boolean
  *               date:
  *                 type: string
  *                 format: date
@@ -949,12 +1008,8 @@ app.post('/user/view/visitor', async function(req, res){
  *       - "application/json"
  *     produces:
  *       - "application/json"
- *   securityDefinitions:
- *     JWT:
- *       type: "apiKey"
- *       name: "Authorization"
- *       in: "header"
  */
+
 
 app.post('/user/updateVisitor', async function(req, res){
     var token = req.header('Authorization').split(" ")[1];
