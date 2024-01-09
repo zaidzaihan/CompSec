@@ -1206,15 +1206,6 @@ app.post('/Admin/register', async function(req, res){
  *             role:
  *               type: string
  *               description: New role to be assigned to the user
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               role:
- *                 type: string
  *     responses:
  *       '200':
  *         description: Account role updated successfully
@@ -1263,17 +1254,8 @@ app.post('/Admin/register', async function(req, res){
  *       - application/json
  *     produces:
  *       - application/json
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               role:
- *                 type: string
- *                 description: New role to be assigned to the user
  */
+
 app.put('/Admin/manage-roles/:userId', async function(req, res) {
     const { userId } = req.params;
     const { role } = req.body;
