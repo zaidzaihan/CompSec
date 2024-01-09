@@ -84,7 +84,8 @@ async function registerAdmin(identification_No, name, hashedPassword, phone_numb
 async function register(host, identification_No, name, gender, ethnicity, temperature, dateofbirth, citizenship, document_type, expiryDate, address, town, postcode, state, country, phone_number, vehicle_number, vehicle_type, visitor_category, preregistered_pass, no_of_visitors, purpose_of_visit, visit_limit_hrs, visit_limit_min, To_meet, Host_Information, Location_or_department, Unit_no, Location_Information, Permit_number, Delivery_Order, Remarks, fever, sore_throat, dry_cough, runny_nose, shortness_of_breath, body_ache, travelled_oversea_last_14_days, contact_with_person_with_Covid_19, recovered_from_covid_19, covid_19_test, date, hostContact){
     await client.connect();
     const exist = await client.db("VMS").collection("Visitors").findOne({identification_No: identification_No});
-    const host_contact = await client.db("VMS").collection("UserInfo").findOne(host);
+    const host_contact = await client.db("VMS").collection("UserInfo").findOne({ identification_No: host });
+    const host_number =  await host_contact.phone_number;
     //hashed = await bcrypt.hash(password,10);
     if(exist){
         console.log("User is already registered!");
@@ -121,7 +122,7 @@ async function register(host, identification_No, name, gender, ethnicity, temper
             Permit_number: Permit_number,
             Delivery_Order: Delivery_Order, 
             Remarks: Remarks,
-            hostContact: host_contact.phone_number
+            hostContact: host_number
 
         });
         await client.db("VMS").collection("Health Status").insertOne({
@@ -484,7 +485,7 @@ app.post('/user/registerVisitor', async function(req, res){
         try {
             const host = decoded.identification_No
 
-            await register(host,identification_No, name, gender, ethnicity, temperature, dateofbirth, citizenship, document_type, expiryDate, address, town, postcode, state, country, phone_number, vehicle_number, vehicle_type, visitor_category, preregistered_pass, no_of_visitors, purpose_of_visit, visit_limit_hrs, visit_limit_min, To_meet, Host_Information, Location_or_department, Unit_no, Location_Information, Permit_number, Delivery_Order, Remarks, fever, sore_throat, dry_cough, runny_nose, shortness_of_breath, body_ache, travelled_oversea_last_14_days, contact_with_person_with_Covid_19, recovered_from_covid_19, covid_19_test, date);
+            await register(host, identification_No, name, gender, ethnicity, temperature, dateofbirth, citizenship, document_type, expiryDate, address, town, postcode, state, country, phone_number, vehicle_number, vehicle_type, visitor_category, preregistered_pass, no_of_visitors, purpose_of_visit, visit_limit_hrs, visit_limit_min, To_meet, Host_Information, Location_or_department, Unit_no, Location_Information, Permit_number, Delivery_Order, Remarks, fever, sore_throat, dry_cough, runny_nose, shortness_of_breath, body_ache, travelled_oversea_last_14_days, contact_with_person_with_Covid_19, recovered_from_covid_19, covid_19_test, date);
             res.send("Registered visitor successfully!");
         } catch (error) {
             console.error(error);
