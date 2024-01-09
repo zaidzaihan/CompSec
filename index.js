@@ -1184,16 +1184,18 @@ app.post('/Admin/register', async function(req, res){
  * /Admin/manage-roles/{userId}:
  *   put:
  *     summary: Update user role by authenticated administrator
- *     consumes:
- *       - application/json
- *     produces:
- *       - application/json
+ *     description: Update user role based on the provided user ID for an authenticated administrator
+ *     tags:
+ *       - Admin
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
  *         description: ID of the user to update role
  *         required: true
- *         type: string
+ *         schema:
+ *           type: string
  *       - in: body
  *         name: userRole
  *         description: User role information for update
@@ -1204,51 +1206,79 @@ app.post('/Admin/register', async function(req, res){
  *             role:
  *               type: string
  *               description: New role to be assigned to the user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               role:
+ *                 type: string
  *     responses:
  *       '200':
  *         description: Account role updated successfully
- *         schema:
- *           type: object
- *           properties:
- *             message:
- *               type: string
- *               description: Success message
- *             updatedUser:
+ *         content:
+ *           application/json:
+ *             schema:
  *               type: object
- *               description: Updated user information
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Success message
+ *                 updatedUser:
+ *                   type: object
+ *                   description: Updated user information
  *       '403':
  *         description: Unauthorized access
- *         schema:
- *           type: object
- *           properties:
- *             error:
- *               type: string
- *               description: Error message for unauthorized access
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message for unauthorized access
  *       '404':
  *         description: User not found
- *         schema:
- *           type: object
- *           properties:
- *             error:
- *               type: string
- *               description: Error message for user not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message for user not found
  *       '500':
  *         description: Failed to update account role or unauthorized access
- *         schema:
- *           type: object
- *           properties:
- *             error:
- *               type: string
- *               description: Error message for failed update or unauthorized access
- *     tags:
- *       - Admin
- *     security:
- *       - bearerAuth: []
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message for failed update or unauthorized access
+ *     consumes:
+ *       - application/json
+ *     produces:
+ *       - application/json
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               role:
+ *                 type: string
+ *                 description: New role to be assigned to the user
  */
 app.put('/Admin/manage-roles/:userId', async function(req, res) {
     const { userId } = req.params;
     const { role } = req.body;
     const token = req.headers.authorization.split(' ')[1];
+
     try {
         const decodedToken = jwt.verify(token, privatekey);
 
@@ -1257,21 +1287,33 @@ app.put('/Admin/manage-roles/:userId', async function(req, res) {
         }
 
         await client.connect();
-        const updatedUser = await client.db("VMS").findOneAndUpdate(
-            { identification_No: userId },
-            { $set: { role: role } },
-            { returnOriginal: false }
-        );
+        const db = client.db("VMS");
+        const collection = db.collection("UserInfo");
 
-        if (updatedUser.value) {
-            res.status(200).json({ message: 'Account role updated successfully', updatedUser });
+        const userToUpdate = await collection.findOne({ identification_No: userId });
+
+        if (userToUpdate) {
+            const updatedUser = await collection.updateOne(
+                { identification_No: userId },
+                { $set: { role: role } }
+            );
+
+            if (updatedUser.modifiedCount > 0) {
+                const updatedUserData = await collection.findOne({ identification_No: userId });
+                res.status(200).json({ message: 'Account role updated successfully', updatedUser: updatedUserData });
+            } else {
+                res.status(500).json({ error: 'Failed to update user role' });
+            }
         } else {
             res.status(404).json({ error: 'User not found' });
         }
+
+        client.close(); // Close the database connection
     } catch (error) {
         res.status(500).json({ error: 'Failed to update account role or unauthorized access' });
     }
 });
+
 
 // Endpoint for authenticated security to retrieve host contact number from visitor pass
 /**
