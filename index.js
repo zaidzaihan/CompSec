@@ -1252,7 +1252,7 @@ app.put('/Admin/manage-roles/:userId', async function(req, res) {
     try {
         const decodedToken = jwt.verify(token, privatekey);
 
-        if (decodedToken.role !== 'admin') {
+        if (decodedToken.role !== 'Admin') {
             return res.status(403).json({ error: 'Unauthorized access' });
         }
 
