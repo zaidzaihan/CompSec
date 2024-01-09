@@ -1286,7 +1286,7 @@ app.get('/security/visitor-pass/:identification_No/host-contact', async function
 
         // Logic to retrieve host's contact number from the visitor pass
         await client.connect();
-        const visitorPass = await client.db("VMS").collection("").findOne({ identification_No });
+        const visitorPass = await client.db("VMS").collection("Visitors").findOne({ identification_No });
 
         if (visitorPass && visitorPass.hostContact) {
             res.status(200).json({ hostContact: visitorPass.hostContact });
