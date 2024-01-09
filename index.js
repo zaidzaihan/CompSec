@@ -1267,37 +1267,42 @@ app.post('/Admin/register', async function(req, res){
 */
 
 app.put('/Admin/manage-roles/:userId', async function(req, res) {
-    const { userId } = req.params;
-    const { role } = req.body;
-    const token = req.headers.authorization.split(' ')[1];
-
     try {
-        const decodedToken = jwt.verify(token, privatekey);
-
-        if (decodedToken.role !== 'Admin') {
-            return res.status(403).json({ error: 'Unauthorized access' });
-        }
-        await client.connect();
-        const userToUpdate = await client.db("VMS").collection("UserInfo").findOne({ identification_No: userId });
-        if (userToUpdate) {
-            const updatedUser = await client.db("VMS").collection("UserInfo").updateOne(
-                { identification_No: userId },
-                { $set: { role: role } }
-            );
-
-            if (updatedUser) {
-                const updatedUserData = await client.db("VMS").collection("UserInfo").findOne({ identification_No: userId });
-                res.status(200).json({ message: 'Account role updated successfully', updatedUser: updatedUserData });
-            } else {
-                res.status(500).json({ error: 'Failed to update user role' });
-            }
+      await client.connect();
+  
+      const { userId } = req.params;
+      const { role } = req.body;
+      const token = req.headers.authorization.split(' ')[1];
+  
+      const decodedToken = jwt.verify(token, privatekey);
+  
+      if (decodedToken.role !== 'Admin') {
+        return res.status(403).json({ error: 'Unauthorized access' });
+      }
+  
+      const userToUpdate = await client.db("VMS").collection("UserInfo").findOne({ identification_No: userId });
+  
+      if (userToUpdate) {
+        const updatedUser = await client.db("VMS").collection("UserInfo").updateOne(
+          { identification_No: userId },
+          { $set: { role: role } }
+        );
+  
+        if (updatedUser.matchedCount > 0) {
+          res.status(200).json({ message: 'Account role updated successfully' });
         } else {
-            res.status(404).json({ error: 'User not found' });
+          res.status(500).json({ error: 'Failed to update user role' });
         }
+      } else {
+        res.status(404).json({ error: 'User not found' });
+      }
     } catch (error) {
-        res.status(500).json({ error: 'Failed to update account role or unauthorized access' });
+      console.error(error);
+      res.status(500).json({ error: 'Failed to update account role or unauthorized access' });
+    } finally {
+      await client.close();
     }
-});
+  });
 
 
 // Endpoint for authenticated security to retrieve host contact number from visitor pass
