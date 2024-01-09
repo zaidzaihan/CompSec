@@ -1180,81 +1180,91 @@ app.post('/Admin/register', async function(req, res){
 
 //Additional API
 /**
- * @swagger
- * /Admin/manage-roles/{userId}:
- *   put:
- *     summary: Update user role by authenticated administrator
- *     description: Update user role based on the provided user ID for an authenticated administrator
- *     tags:
- *       - Admin
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: userId
- *         description: ID of the user to update role
- *         required: true
- *         schema:
- *           type: string
- *       - in: body
- *         name: userRole
- *         description: User role information for update
- *         required: true
- *         schema:
- *           type: object
- *           properties:
- *             role:
- *               type: string
- *               description: New role to be assigned to the user
- *     responses:
- *       '200':
- *         description: Account role updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   description: Success message
- *                 updatedUser:
- *                   type: object
- *                   description: Updated user information
- *       '403':
- *         description: Unauthorized access
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   description: Error message for unauthorized access
- *       '404':
- *         description: User not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   description: Error message for user not found
- *       '500':
- *         description: Failed to update account role or unauthorized access
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   description: Error message for failed update or unauthorized access
- *     consumes:
- *       - application/json
- *     produces:
- *       - application/json
- */
+* @swagger
+* /Admin/manage-roles/{userId}:
+*   put:
+*     summary: Update user role by authenticated administrator
+*     description: Update user role based on the provided user ID for an authenticated administrator
+*     tags:
+*       - Admin
+*     security:
+*       - bearerAuth: []  # Assuming you're using bearer token authentication
+*     parameters:
+*       - in: path
+*         name: userId
+*         description: ID of the user to update role
+*         required: true
+*         schema:
+*           type: string
+*       - in: body
+*         name: userRole
+*         description: User role information for update
+*         required: true
+*         schema:
+*           type: object
+*           properties:
+*             role:
+*               type: string
+*               description: New role to be assigned to the user
+*     responses:
+*       '200':
+*         description: Account role updated successfully
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 message:
+*                   type: string
+*                   description: Success message
+*                 updatedUser:
+*                   type: object
+*                   description: Updated user information (excluding sensitive fields)
+*       '401':  # Unauthorized (more specific than 403)
+*         description: Unauthorized access
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 error:
+*                   type: string
+*                   description: Error message for unauthorized access
+*       '403':  # Forbidden (if applicable)
+*         description: Forbidden access
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 error:
+*                   type: string
+*                   description: Error message for forbidden access
+*       '404':
+*         description: User not found
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 error:
+*                   type: string
+*                   description: Error message for user not found
+*       '500':
+*         description: Failed to update account role
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 error:
+*                   type: string
+*                   description: Error message for failed update
+*     consumes:
+*       - application/json
+*     produces:
+*       - application/json
+*/
 
 app.put('/Admin/manage-roles/:userId', async function(req, res) {
     const { userId } = req.params;
