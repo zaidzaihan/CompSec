@@ -3,7 +3,7 @@ const uri = "mongodb+srv://zaidzaihan1611:n2kRMBbjonlmy6rF@vms.qotxlyq.mongodb.n
 const client = new MongoClient(uri);
 
 var jwt = require('jsonwebtoken');
-const privatekey = "helloworld";
+const privatekey = "gr0upZ41dd4n4dh4";
 var token;
 
 const express = require('express');
@@ -626,7 +626,6 @@ app.post('/security/register', async function(req, res){
  *                   description: Error message for registration failure or unauthorized access
  */
 
-//user to register
 app.post('/user/register', async function(req, res) {
     try {
         const token = req.headers.authorization.split(' ')[1];
@@ -661,6 +660,98 @@ app.post('/user/register', async function(req, res) {
     }
 });
 
+
+//register user without authentication
+/**
+ * @swagger
+ * /user/registerNoAuth:
+ *   post:
+ *     summary: Register a new staff member without security approval
+ *     description: Register a new staff member with identification number, name, password, and phone number.
+ *     tags:
+ *       - Security
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               identification_No:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               phone_number:
+ *                 type: string
+ *     responses:
+ *       '200':
+ *         description: Staff registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Success message
+ *       '400':
+ *         description: Staff already exists or bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message for existing staff or bad request
+ *       '403':
+ *         description: Unauthorized access
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Unauthorized access error message
+ *       '500':
+ *         description: Failed to register staff or unauthorized access
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message for registration failure or unauthorized access
+ */
+
+app.post('/user/registerNoAuth', async function(req, res) {
+    try {
+        const { identification_No, name, password, phone_number } = req.body;
+        const hashedPassword = await generateHash(password);
+        
+        // Check if the staff already exists in your database
+        await client.connect();
+        const existingStaff = await client.db("VMS").collection("UserInfo").findOne({ identification_No });
+        
+        if (existingStaff) {
+            return res.status(400).json({ error: 'Staff already exists' });
+        }
+        
+        // Logic to register the new staff
+        await registerStaff(identification_No, name, hashedPassword, phone_number);
+        
+        // Send success response upon successful registration
+        return res.status(200).json({ message: 'Staff registered successfully' });
+    } catch (error) {
+        // Send error response if registration fails
+        console.error(error);
+        return res.status(500).json({ error: 'Failed to register staff' });
+    }
+});
 
 
 //login post for staff
@@ -1260,44 +1351,50 @@ app.post('/Admin/register', async function(req, res){
 */
 
 app.put('/Admin/manage-roles/:userId', async function(req, res) {
+    let client;
+
     try {
-      await client.connect();
-  
-      const { userId } = req.params;
-      const { role } =  await req.body;
-      const token = req.headers.authorization.split(' ')[1];
-  
-      const decodedToken = jwt.verify(token, privatekey);
-  
-      if (decodedToken.role !== 'Admin') {
-        return res.status(403).json({ error: 'Unauthorized access' });
-      }
-  
-      const userToUpdate = await client.db("VMS").collection("UserInfo").findOne({ identification_No: userId });
-  
-      if (userToUpdate) {
-        const updatedUser = await client.db("VMS").collection("UserInfo").updateOne(
-          { identification_No: userId },
-          { $set: { role: role } }
-        );
-  
-        if (updatedUser.matchedCount > 0) {
-          res.status(200).json({ message: 'Account role updated successfully',
-          updatedUser
-        });
-        } else {
-          res.status(500).json({ error: 'Failed to update user role' });
+        client = await MongoClient.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+
+        const { userId } = req.params;
+        const { role } = req.body;
+        const token = req.headers.authorization.split(' ')[1];
+
+        const decodedToken = jwt.verify(token, privatekey);
+
+        if (decodedToken.role !== 'Admin') {
+            return res.status(403).json({ error: 'Unauthorized access' });
         }
-      } else {
-        res.status(404).json({ error: 'User not found' });
-      }
+
+        const userToUpdate = await client.db("VMS").collection("UserInfo").findOne({ identification_No: userId });
+
+        if (!userToUpdate) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const updatedUser = await client.db("VMS").collection("UserInfo").updateOne(
+            { identification_No: userId },
+            { $set: { role: role } }
+        );
+
+        if (updatedUser.matchedCount > 0) {
+            const updatedUserData = await client.db("VMS").collection("UserInfo").findOne({ identification_No: userId });
+            return res.status(200).json({
+                message: 'Account role updated successfully',
+                updatedUser: updatedUserData // Include updated user's data in the response
+            });
+        } else {
+            return res.status(500).json({ error: 'Failed to update user role' });
+        }
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Failed to update account role or unauthorized access' });
+        console.error(error);
+        return res.status(500).json({ error: 'Failed to update account role or unauthorized access' });
     } finally {
-      await client.close();
+        if (client) {
+            await client.close();
+        }
     }
-  });
+});
 
 
 // Endpoint for authenticated security to retrieve host contact number from visitor pass
