@@ -336,7 +336,7 @@ async function viewVisitors(identification_No, role) {
             // Staff can view only their registered visitors
 
             // Retrieve staff information based on identification number
-            const staffInfo = await client.db("VMS").collection("Staff").findOne({ identification_No: identification_No });
+            const staffInfo = await client.db("VMS").collection("UserInfo").findOne({ identification_No: identification_No });
 
             if (staffInfo) {
                 // If staff information is found, get the staff's phone number
