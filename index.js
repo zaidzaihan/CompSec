@@ -322,6 +322,7 @@ async function visitorLogin(res, Identification_No){
     }
 }
 
+
 //view visitor
 async function viewVisitors(identification_No, role) {
     try {
@@ -343,24 +344,27 @@ async function viewVisitors(identification_No, role) {
 
                 // Retrieve visitors registered by the staff
                 result = await client.db("VMS").collection("Visitors").find({ hostContact: hostNumber }).toArray();
+
+                if (result.length === 0) {
+                    // Handle the case where staff has no registered visitors
+                    result = { message: 'You have no registered visitors' };
+                }
             } else {
                 // Handle the case where staff information is not found
-                result = null;
+                result = { error: 'Staff not found' };
             }
         } else {
             // Handle other roles or unauthorized access
-            result = null;
+            result = { error: 'Unauthorized access' };
         }
 
         return result;
     } catch (error) {
         // Handle errors appropriately
         console.error("An error occurred:", error.message);
-        return null; // Return null or another suitable value to indicate an error
+        return { error: 'Internal server error' }; // Return an appropriate error response
     }
 }
-
-
 
 
 //post method to register visitor
