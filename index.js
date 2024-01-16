@@ -326,21 +326,40 @@ async function visitorLogin(res, Identification_No){
 async function viewVisitors(identification_No, role) {
     try {
         await client.connect();
-        let exist;
+        let result;
 
-        if (role === "Admin" || role === "Staff" || role === "Security") {
-            exist = await client.db("VMS").collection("Visitors").find({}).toArray();
+        if (role === "Admin" || role === "Security") {
+            // Admin and Security can view all visitors
+            result = await client.db("VMS").collection("Visitors").find({}).toArray();
+        } else if (role === "Staff") {
+            // Staff can view only their registered visitors
+
+            // Retrieve staff information based on identification number
+            const staffInfo = await client.db("VMS").collection("Staff").findOne({ identification_No: identification_No });
+
+            if (staffInfo) {
+                // If staff information is found, get the staff's phone number
+                const hostNumber = staffInfo.phone_number;
+
+                // Retrieve visitors registered by the staff
+                result = await client.db("VMS").collection("Visitors").find({ hostContact: hostNumber }).toArray();
+            } else {
+                // Handle the case where staff information is not found
+                result = null;
+            }
         } else {
-            exist = await client.db("VMS").collection("Visitors").findOne({ identification_No: identification_No });
+            // Handle other roles or unauthorized access
+            result = null;
         }
 
-        return exist;
+        return result;
     } catch (error) {
         // Handle errors appropriately
         console.error("An error occurred:", error.message);
         return null; // Return null or another suitable value to indicate an error
     }
 }
+
 
 
 
