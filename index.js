@@ -318,7 +318,7 @@ async function visitorLogin(res, identification_No) {
         const visitor = await client.db("VMS").collection("Visitors").findOne({ identification_No });
 
         if (visitor) {
-            const host = await client.db("VMS").collection("Staff").findOne({ phone_number: visitor.hostContact });
+            const host = await client.db("VMS").collection("UserInfo").findOne({ phone_number: visitor.hostContact });
             const date = await client.db("VMS").collection("Health Status").findOne({identification_No})
 
             if (host) {
