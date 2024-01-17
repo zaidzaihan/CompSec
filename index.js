@@ -1,6 +1,7 @@
-const {MongoClient} = require('mongodb');
-const uri = "mongodb+srv://zaidzaihan1611:n2kRMBbjonlmy6rF@vms.qotxlyq.mongodb.net/";
+const { MongoClient } = require('mongodb');
+const uri = "mongodb+srv://zaidzaihan1611:n2kRMBbjonlmy6rF@vms.qotxlyq.mongodb.net/?retryWrites=true&w=majority";
 const client = new MongoClient(uri);
+
 
 var jwt = require('jsonwebtoken');
 const privatekey = "gr0upZ41dd4n4dh4";
@@ -310,17 +311,33 @@ async function login(res, identification, password) {
 }
 
 
-async function visitorLogin(res, Identification_No){
-    await client.connect();
-    const exist = await client.db("VMS").collection("Health Status").findOne({identification_No: Identification_No});
-    const hostID = await client.db("VMS").collection("Host").findOne({phone_number: exist.hostContact})
-    if(exist){
-        res.send({ message: "Welcome!", "Your Host ID": hostID.identification_No, "Time of Visit": exist.date});
-        //Masukkan logs
-    } else {
-        res.send("Visitor not registered!");
+async function visitorLogin(res, identification_No) {
+    try {
+        await client.connect();
+        const healthStatus = await client.db("VMS").collection("Health Status").findOne({ identification_No });
+
+        if (healthStatus) {
+            const host = await client.db("VMS").collection("Host").findOne({ phone_number: healthStatus.hostContact });
+
+            if (host) {
+                res.json({
+                    message: "Welcome!",
+                    hostIdentificationNo: host.identification_No,
+                    timeOfVisit: healthStatus.date
+                });
+
+            } else {
+                res.status(404).json({ error: "Host not found" });
+            }
+        } else {
+            res.status(404).json({ error: "Visitor not registered" });
+        }
+    } catch (error) {
+        console.error("An error occurred:", error.message);
+        res.status(500).json({ error: "Internal server error" });
     }
 }
+
 
 
 //view visitor
