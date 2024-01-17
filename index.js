@@ -81,7 +81,7 @@ async function registerAdmin(identification_No, name, hashedPassword, phone_numb
 }
 
 // register a visitor 
-async function register(host, identification_No, name, gender, ethnicity, temperature, dateofbirth, citizenship, document_type, expiryDate, address, town, postcode, state, country, phone_number, vehicle_number, vehicle_type, visitor_category, preregistered_pass, no_of_visitors, purpose_of_visit, visit_limit_hrs, visit_limit_min, To_meet, Host_Information, Location_or_department, Unit_no, Location_Information, Permit_number, Delivery_Order, Remarks, fever, sore_throat, dry_cough, runny_nose, shortness_of_breath, body_ache, travelled_oversea_last_14_days, contact_with_person_with_Covid_19, recovered_from_covid_19, covid_19_test, date, hostContact){
+async function register(host, identification_No, name, gender, ethnicity, temperature, dateofbirth, citizenship, document_type, expiryDate, address, town, postcode, state, country, phone_number, vehicle_number, vehicle_type, visitor_category, preregistered_pass, no_of_visitors, purpose_of_visit, visit_limit_hrs, visit_limit_min, To_meet, Host_Information, Location_or_department, Unit_no, Location_Information, Permit_number, Delivery_Order, Remarks, fever, sore_throat, dry_cough, runny_nose, shortness_of_breath, body_ache, travelled_oversea_last_14_days, contact_with_person_with_Covid_19, recovered_from_covid_19, covid_19_test, date){
     await client.connect();
     const exist = await client.db("VMS").collection("Visitors").findOne({identification_No: identification_No});
     const host_contact = await client.db("VMS").collection("UserInfo").findOne({ identification_No: host });
@@ -312,11 +312,11 @@ async function login(res, identification, password) {
 
 async function visitorLogin(res, Identification_No){
     await client.connect();
-    const exist = await client.db("VMS").collection("Visitors").findOne({identification_No: Identification_No});
+    const exist = await client.db("VMS").collection("Health Status").findOne({identification_No: Identification_No});
+    const hostID = await client.db("VMS").collection("Host").findOne({phone_number: exist.hostContact})
     if(exist){
-        res.send({ message: "Welcome!", User_Info: exist });
+        res.send({ message: "Welcome!", "Your Host ID": hostID.identification_No, "Time of Visit": exist.date});
         //Masukkan logs
-        await logs(Identification_No, exist.name, exist.visitor_category);
     } else {
         res.send("Visitor not registered!");
     }
@@ -940,8 +940,8 @@ if(decoded.role == "Admin"|| decoded.role == "Staff"){
  * @swagger
  * /visitor/retrievePass:
  *   post:
- *     summary: Visitor login
- *     description: Login for visitor authentication
+ *     summary: Visitor retrieval pass
+ *     description: Visitor to retrieve pass by using visitor's ID
  *     tags:
  *       - Visitors
  *     requestBody:
@@ -952,7 +952,7 @@ if(decoded.role == "Admin"|| decoded.role == "Staff"){
  *             type: object
  *             properties:
  *               identification_No:
- *                 type: string
+ *                 type: string 
  *                 description: Identification number of the visitor
  *     responses:
  *       '200':
@@ -963,7 +963,7 @@ if(decoded.role == "Admin"|| decoded.role == "Staff"){
 
 app.post('/visitor/retrievePass', async function(req, res){
     const {identification_No} = req.body;
-    visitorLogin(res, identification_No);
+    await visitorLogin(res, identification_No);
 });
 
 //View Visitor
