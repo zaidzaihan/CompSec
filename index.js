@@ -210,7 +210,8 @@ async function updateVisitor(host, identification_No, name, gender, ethnicity, t
             contact_with_person_with_Covid_19: contact_with_person_with_Covid_19,
             recovered_from_covid_19: recovered_from_covid_19,
             covid_19_test: covid_19_test,
-            date: date
+            date: date,
+            hostContact: host_number.phone_number
           }
         }
       );
@@ -314,16 +315,17 @@ async function login(res, identification, password) {
 async function visitorLogin(res, identification_No) {
     try {
         await client.connect();
-        const healthStatus = await client.db("VMS").collection("Health Status").findOne({ identification_No });
+        const visitor = await client.db("VMS").collection("Visitors").findOne({ identification_No });
 
-        if (healthStatus) {
-            const host = await client.db("VMS").collection("Host").findOne({ phone_number: healthStatus.hostContact });
+        if (visitor) {
+            const host = await client.db("VMS").collection("Staff").findOne({ phone_number: visitor.hostContact });
+            const date = await client.db("VMS").collection("Health Status").findOne({identification_No})
 
             if (host) {
                 res.json({
                     message: "Welcome!",
                     hostIdentificationNo: host.identification_No,
-                    timeOfVisit: healthStatus.date
+                    timeOfVisit: date.date
                 });
 
             } else {
