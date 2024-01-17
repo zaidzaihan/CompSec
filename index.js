@@ -5,7 +5,15 @@ const client = new MongoClient(uri);
 
 var jwt = require('jsonwebtoken');
 const privatekey = "gr0upZ41dd4n4dh4";
-var token;
+
+const rateLimit = require('express-rate-limit');
+
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // 5 requests per window
+    message: 'Too many login attempts from this IP, please try again after 15 minutes',
+});
+
 
 const express = require('express');
 const app = express();
@@ -48,7 +56,6 @@ const swaggerSpec = swaggerJsdoc(options);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 const bcrypt = require('bcrypt');
-var hashed;
 
 app.use(express.json())
 
@@ -343,8 +350,9 @@ async function visitorLogin(res, identification_No) {
             if (host) {
                 res.json({
                     message: "Welcome!",
-                    "host Identification No": host.identification_No,
-                    "time Of Visit": date.date
+                    "Host Identification No": host.identification_No,
+                    "Time Of Visit": date.date,
+                    "Date of Visit" : date.time
                 });
 
             } else {
@@ -715,7 +723,27 @@ app.post('/user/register', async function(req, res) {
         if (existingStaff) {
             return res.status(400).json({ error: 'Staff already exists' });
         }
-        
+
+        // Password policy checks
+        if (password.length < 8) {
+            return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+        }
+
+        // Check for at least one capital letter
+        if (!/[A-Z]/.test(password)) {
+            return res.status(400).json({ error: 'Password must contain at least one capital letter' });
+        }
+
+        // Check for at least one unique character (e.g., special character)
+        if (!/[^a-zA-Z0-9]/.test(password)) {
+            return res.status(400).json({ error: 'Password must contain at least one special character' });
+        }
+
+        // Check for at least one number
+        if (!/\d/.test(password)) {
+            return res.status(400).json({ error: 'Password must contain at least one number' });
+        }
+
         // Logic to register the new staff
         await registerStaff(identification_No, name, hashedPassword, phone_number);
         
@@ -727,6 +755,7 @@ app.post('/user/register', async function(req, res) {
         return res.status(500).json({ error: 'Failed to register staff or unauthorized access' });
     }
 });
+
 
 
 //register user without authentication
@@ -798,8 +827,17 @@ app.post('/user/register', async function(req, res) {
 
 app.post('/user/registerNoAuth', async function(req, res) {
     try {
+        const token = req.headers.authorization.split(' ')[1];
         const { identification_No, name, password, phone_number } = req.body;
         const hashedPassword = await generateHash(password);
+        
+        // Verify the JWT token
+        const decodedToken = jwt.verify(token, privatekey);
+        
+        // Check if the role in the token is "Security"
+        if (decodedToken.role !== 'Security') {
+            return res.status(403).json({ error: 'Unauthorized access' });
+        }
         
         // Check if the staff already exists in your database
         await client.connect();
@@ -808,16 +846,36 @@ app.post('/user/registerNoAuth', async function(req, res) {
         if (existingStaff) {
             return res.status(400).json({ error: 'Staff already exists' });
         }
-        
+
+        // Password policy checks
+        if (password.length < 8) {
+            return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+        }
+
+        // Check for at least one capital letter
+        if (!/[A-Z]/.test(password)) {
+            return res.status(400).json({ error: 'Password must contain at least one capital letter' });
+        }
+
+        // Check for at least one unique character (e.g., special character)
+        if (!/[^a-zA-Z0-9]/.test(password)) {
+            return res.status(400).json({ error: 'Password must contain at least one special character' });
+        }
+
+        // Check for at least one number
+        if (!/\d/.test(password)) {
+            return res.status(400).json({ error: 'Password must contain at least one number' });
+        }
+
         // Logic to register the new staff
         await registerStaff(identification_No, name, hashedPassword, phone_number);
         
         // Send success response upon successful registration
         return res.status(200).json({ message: 'Staff registered successfully' });
     } catch (error) {
-        // Send error response if registration fails
+        // Send error response if registration fails or token validation fails
         console.error(error);
-        return res.status(500).json({ error: 'Failed to register staff' });
+        return res.status(500).json({ error: 'Failed to register staff or unauthorized access' });
     }
 });
 
@@ -856,7 +914,7 @@ app.post('/user/registerNoAuth', async function(req, res) {
  *       '401':
  *         description: Unauthorized - Invalid credentials
  */
-app.post('/user/login', async function(req, res){
+app.post('/user/login',loginLimiter, async function(req, res){
     const { identification_No, password } = req.body;
     await login(res, identification_No, password);
 });
@@ -1313,15 +1371,37 @@ app.post('/visitor/returnPass', async function(req, res){
  *                   type: string
  *                   description: Error message for registration failure
  */
-app.post('/Admin/register', async function(req, res){
+app.post('/Admin/register', async function(req, res) {
     const { identification_No, name, password, phone_number } = req.body;
     const hashedPassword = await generateHash(password); // Encrypting the password
     try {
         await client.connect();
         const existingAdmin = await client.db("VMS").collection("UserInfo").findOne({ identification_No });
+
+        // Password policy checks
+        if (password.length < 8) {
+            return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+        }
+
+        // Check for at least one capital letter
+        if (!/[A-Z]/.test(password)) {
+            return res.status(400).json({ error: 'Password must contain at least one capital letter' });
+        }
+
+        // Check for at least one unique character (e.g., special character)
+        if (!/[^a-zA-Z0-9]/.test(password)) {
+            return res.status(400).json({ error: 'Password must contain at least one special character' });
+        }
+
+        // Check for at least one number
+        if (!/\d/.test(password)) {
+            return res.status(400).json({ error: 'Password must contain at least one number' });
+        }
+
         if (existingAdmin) {
             return res.status(400).json({ error: 'Admin already exists' });
         }
+
         await registerAdmin(identification_No, name, hashedPassword, phone_number);
         res.status(200).json({ message: 'Admin registered successfully' });
     } catch (error) {
@@ -1329,7 +1409,6 @@ app.post('/Admin/register', async function(req, res){
         res.status(500).json({ error: 'Failed to register admin' });
     }
 });
-
 //Additional API
 /**
 * @swagger
