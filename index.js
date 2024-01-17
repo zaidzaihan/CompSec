@@ -82,72 +82,89 @@ async function registerAdmin(identification_No, name, hashedPassword, phone_numb
 }
 
 // register a visitor 
-async function register(host, identification_No, name, gender, ethnicity, temperature, dateofbirth, citizenship, document_type, expiryDate, address, town, postcode, state, country, phone_number, vehicle_number, vehicle_type, visitor_category, preregistered_pass, no_of_visitors, date, time, purpose_of_visit, visit_limit_hrs, visit_limit_min, To_meet, Host_Information, Location_or_department, Unit_no, Location_Information, Permit_number, Delivery_Order, Remarks, fever, sore_throat, dry_cough, runny_nose, shortness_of_breath, body_ache, travelled_oversea_last_14_days, contact_with_person_with_Covid_19, recovered_from_covid_19, covid_19_test){
-    await client.connect();
-    const exist = await client.db("VMS").collection("Visitors").findOne({identification_No: identification_No});
-    const host_contact = await client.db("VMS").collection("UserInfo").findOne({ identification_No: host });
-    const host_number =  await host_contact.phone_number;
-    //hashed = await bcrypt.hash(password,10);
-    if(exist){
-        console.log("User is already registered!");
-    }else{
-        await client.db("VMS").collection("Visitors").insertOne({
-            identification_No: identification_No,
-            name: name,
-            gender: gender,
-            ethnicity: ethnicity,
-            temperature: temperature,
-            dateofbirth: dateofbirth,
-            citizenship: citizenship,
-            document_type: document_type,
-            expiryDate: expiryDate,
-            address: address,
-            town: town,
-            postcode: postcode,
-            state: state,
-            country: country,
-            phone_number: phone_number,
-            vehicle_number: vehicle_number,
-            vehicle_type: vehicle_type,
-            visitor_category: visitor_category,
-            preregistered_pass: preregistered_pass,
-            no_of_visitors: no_of_visitors,
-            date: date,
-            time: time,
-            purpose_of_visit: purpose_of_visit,
-            visit_limit_hrs: visit_limit_hrs,
-            visit_limit_min: visit_limit_min,
-            To_meet: To_meet,
-            Host_Information: Host_Information,
-            Location_or_department: Location_or_department,
-            Unit_no: Unit_no,
-            Location_Information: Location_Information,
-            Permit_number: Permit_number,
-            Delivery_Order: Delivery_Order, 
-            Remarks: Remarks,
-            hostContact: host_number
+async function register(host, identification_No, name, gender, ethnicity, temperature, dateofbirth, citizenship, document_type, expiryDate, address, town, postcode, state, country, phone_number, vehicle_number, vehicle_type, visitor_category, preregistered_pass, no_of_visitors, date, time, purpose_of_visit, visit_limit_hrs, visit_limit_min, To_meet, Host_Information, Location_or_department, Unit_no, Location_Information, Permit_number, Delivery_Order, Remarks, fever, sore_throat, dry_cough, runny_nose, shortness_of_breath, body_ache, travelled_oversea_last_14_days, contact_with_person_with_Covid_19, recovered_from_covid_19, covid_19_test) {
+    try {
+        await client.connect();
 
+        const existingVisitor = await client.db("VMS").collection("Visitors").findOne({ identification_No });
+
+        if (existingVisitor) {
+            console.log("User is already registered!");
+            return;
+        }
+
+        const hostContact = await client.db("VMS").collection("UserInfo").findOne({ identification_No: host });
+        if (!hostContact) {
+            console.log("Host not found!");
+            return;
+        }
+
+        const hostNumber = hostContact.phone_number;
+
+        await client.db("VMS").collection("Visitors").insertOne({
+            identification_No,
+            name,
+            gender,
+            ethnicity,
+            temperature,
+            dateofbirth,
+            citizenship,
+            document_type,
+            expiryDate,
+            address,
+            town,
+            postcode,
+            state,
+            country,
+            phone_number,
+            vehicle_number,
+            vehicle_type,
+            visitor_category,
+            preregistered_pass,
+            no_of_visitors,
+            date,
+            time,
+            purpose_of_visit,
+            visit_limit_hrs,
+            visit_limit_min,
+            To_meet,
+            Host_Information,
+            Location_or_department,
+            Unit_no,
+            Location_Information,
+            Permit_number,
+            Delivery_Order,
+            Remarks,
+            hostContact: hostNumber
         });
+
         await client.db("VMS").collection("Health Status").insertOne({
-            identification_No: identification_No,
+            identification_No,
             Name: name,
-            temperature: temperature,
-            fever: fever,
-            sore_throat: sore_throat,
-            dry_cough: dry_cough,
-            runny_nose: runny_nose,
-            shortness_of_breath: shortness_of_breath,
-            body_ache: body_ache,
-            travelled_oversea_last_14_days: travelled_oversea_last_14_days,
-            contact_with_person_with_Covid_19: contact_with_person_with_Covid_19,
-            recovered_from_covid_19: recovered_from_covid_19,
-            covid_19_test: covid_19_test,
-            date: date,
-            hostContact: host_number
+            temperature,
+            fever,
+            sore_throat,
+            dry_cough,
+            runny_nose,
+            shortness_of_breath,
+            body_ache,
+            travelled_oversea_last_14_days,
+            contact_with_person_with_Covid_19,
+            recovered_from_covid_19,
+            covid_19_test,
+            date,
+            hostContact: hostNumber
         });
-        console.log("registered successfully!");
+
+        console.log("Registered successfully!");
+    } catch (error) {
+        console.error("An error occurred:", error.message);
+        throw error; // Propagate the error for better handling at the calling site
+    } finally {
+        await client.close();
     }
 }
+
 
 
 //update Visitor for admin
@@ -447,7 +464,7 @@ async function viewVisitors(identification_No, role) {
  *                 type: string
  *               no_of_visitors:
  *                 type: string
- *  *            date:
+ *               date:
  *                 type: string
  *                 format: date
  *               time:
@@ -506,33 +523,36 @@ async function viewVisitors(identification_No, role) {
  *       - "application/json"
  *     produces:
  *       - "application/json"
- *   securityDefinitions:
- *     JWT:
- *       type: "apiKey"
- *       name: "Authorization"
- *       in: "header"
  */
+
 app.post('/user/registerVisitor', async function(req, res){
-    var token = req.header('Authorization').split(" ")[1];
+    let decoded;
+
+    const token = req.header('Authorization').split(" ")[1];
+
     try {
-        var decoded = jwt.verify(token, privatekey);
+        decoded = jwt.verify(token, privatekey);
         if (!decoded || !decoded.role) {
-            res.status(401).send("Unauthorized");
+            res.status(401).send("Unauthorized: Invalid or missing token");
             return;
         }
-    } catch(err) {
-        res.status(500).send("Error!");
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error during token verification");
         return;
     }
+
     if (decoded.role === "Staff" || decoded.role === "Admin") {
         const {
             identification_No, name, gender, ethnicity, temperature, dateofbirth, citizenship, document_type, expiryDate, address, town, postcode, state, country, phone_number, vehicle_number, vehicle_type, visitor_category, preregistered_pass, no_of_visitors, date, time, purpose_of_visit, visit_limit_hrs, visit_limit_min, To_meet, Host_Information, Location_or_department, Unit_no, Location_Information, Permit_number, Delivery_Order, Remarks, fever, sore_throat, dry_cough, runny_nose, shortness_of_breath, body_ache, travelled_oversea_last_14_days, contact_with_person_with_Covid_19, recovered_from_covid_19, covid_19_test
         } = req.body;
 
         try {
-            const host = decoded.identification_No
+            const host = decoded.identification_No;
 
+            // Assuming register is an asynchronous function that may throw errors
             await register(host, identification_No, name, gender, ethnicity, temperature, dateofbirth, citizenship, document_type, expiryDate, address, town, postcode, state, country, phone_number, vehicle_number, vehicle_type, visitor_category, preregistered_pass, no_of_visitors, date, time, purpose_of_visit, visit_limit_hrs, visit_limit_min, To_meet, Host_Information, Location_or_department, Unit_no, Location_Information, Permit_number, Delivery_Order, Remarks, fever, sore_throat, dry_cough, runny_nose, shortness_of_breath, body_ache, travelled_oversea_last_14_days, contact_with_person_with_Covid_19, recovered_from_covid_19, covid_19_test);
+
             res.send("Registered visitor successfully!");
         } catch (error) {
             console.error(error);
@@ -542,6 +562,7 @@ app.post('/user/registerVisitor', async function(req, res){
         res.status(403).send("Forbidden: You do not have access");
     }
 });
+
 
 
 /**
