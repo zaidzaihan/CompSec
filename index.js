@@ -547,6 +547,8 @@ async function viewVisitors(identification_No, role) {
  *         description: Invalid request body or insufficient permissions
  *       '401':
  *         description: Unauthorized - Invalid token or insufficient permissions
+ *       '500':
+ *         description: Unauthorized - Error during token validation/ No token given.
  *     consumes:
  *       - "application/json"
  *     produces:
