@@ -256,29 +256,49 @@ async function updateVisitor(host, identification_No, name, gender, ethnicity, t
 
   async function createSecurityPersonnel(res, identification_No, name, password) {
     try {
+        // Password policy checks
+        if (password.length < 8) {
+            return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+        }
+
+        // Check for at least one capital letter
+        if (!/[A-Z]/.test(password)) {
+            return res.status(400).json({ error: 'Password must contain at least one capital letter' });
+        }
+
+        // Check for at least one unique character (e.g., special character)
+        if (!/[^a-zA-Z0-9]/.test(password)) {
+            return res.status(400).json({ error: 'Password must contain at least one special character' });
+        }
+
+        // Check for at least one number
+        if (!/\d/.test(password)) {
+            return res.status(400).json({ error: 'Password must contain at least one number' });
+        }
+
         await client.connect();
         const exist = await client.db("VMS").collection("UserInfo").findOne({ identification_No });
 
         if (exist) {
-            res.status(400).send({ error: "Identification number already exists" });
-        } else {
-            const newSecurityPersonnel = {
-                identification_No,
-                name,
-                password,
-                role: "Security"
-            };
+            return res.status(400).json({ error: "Identification number already exists" });
+        }
 
-            const result = await client.db("VMS").collection("UserInfo").insertOne(newSecurityPersonnel);
-            if (result) {
-                res.status(200).send({ message: "Security personnel registered successfully" });
-            } else {
-                res.status(500).send({ error: "Registration failed" });
-            }
+        const newSecurityPersonnel = {
+            identification_No,
+            name,
+            password,
+            role: "Security"
+        };
+
+        const result = await client.db("VMS").collection("UserInfo").insertOne(newSecurityPersonnel);
+        if (result) {
+            res.status(200).json({ message: "Security personnel registered successfully" });
+        } else {
+            res.status(500).json({ error: "Registration failed" });
         }
     } catch (error) {
         console.error(error);
-        res.status(500).send({ error: "An error occurred" });
+        res.status(500).json({ error: "An error occurred" });
     }
 }
 
@@ -539,7 +559,7 @@ app.post('/user/registerVisitor', async function(req, res){
         let decoded;
 
         const token = req.header('Authorization').split(" ")[1];
-        
+
         decoded = jwt.verify(token, privatekey);
         if (!decoded || !decoded.role) {
             res.status(401).send("Unauthorized: Invalid or missing token");
