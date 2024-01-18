@@ -534,11 +534,12 @@ async function viewVisitors(identification_No, role) {
  */
 
 app.post('/user/registerVisitor', async function(req, res){
-    let decoded;
-
-    const token = req.header('Authorization').split(" ")[1];
 
     try {
+        let decoded;
+
+        const token = req.header('Authorization').split(" ")[1];
+        
         decoded = jwt.verify(token, privatekey);
         if (!decoded || !decoded.role) {
             res.status(401).send("Unauthorized: Invalid or missing token");
